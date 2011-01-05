@@ -1,0 +1,11 @@
+--- 32 2010-11-27 09:48:15 PM
++++ 33 2010-11-27 09:48:15 PM
+@@ -13,7 +13,6 @@
+ autocmd FileType javascript setl expandtab ts=2 shiftwidth=2 softtabstop=2
+ autocmd FileType sql setl expandtab ts=2 shiftwidth=2 softtabstop=2
+ autocmd FileType xml vmap ,px !xmllint --format  --encode utf8 - <CR> 
+-autocmd FileType xml 
+- setl expandtab ts=2 shiftwidth=2 softtabstop=2 
++autocmd FileType xml setl expandtab ts=2 shiftwidth=2 softtabstop=2 
+ " }}}
+ 

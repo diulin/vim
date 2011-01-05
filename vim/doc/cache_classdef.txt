@@ -1,0 +1,5086 @@
+*cache_classdef.txt*	For Vim version 7.2.  Last change: 2009 Nov 11
+
+
+                	  VIM REFERENCE MANUAL 
+                               adopted by 
+                     Andriy Diulin <diulin at gmail dot com>
+		          Caché manual pages
+                     Caché Class Definition Reference
+
+For instructions on installing this file, type
+	:help add-local-help
+|add-local-help| inside Vim.
+ Class #{{{
+ClassType                               *classtype* #{{{
+
+Specifies the type (or behavior) of a class.
+Synopsis
+
+Class MyApp.MyClass [ClassType = persistent] { }
+
+Value
+This keyword can take one of the following values:
+
+  • datatype  the class is a datatype class used to represent a literal value.
+  • persistent  the class represents data to be stored within the database.
+  • serial  the class represents data to be stored (in its serialized state)
+    within another persistent object.
+  • stream  the class represents streaming data.
+  • view  the class is used to define an SQL view (see the ViewQuery keyword).
+  • An empty string, which indicates that this class has no specific type.
+    Simple registered objects as well as abstract classes typically do not
+    specify a class type.
+
+Description
+Specifies how this class is to be used. The class compiler uses the ClassType
+keyword to determine how to compile a class. For example, if ClassType is 
+ persistent , the class compiler additionally invokes the storage compiler to
+generate persistence code for a class.
+Default Value
+The default value for the ClassType keyword is an empty string.
+
+ #}}}
+ClientDataType                          *clientdatatype* #{{{
+
+In the case of a data type class, specifies the client data type used when this
+datatype is projected via ActiveX or Java.
+Synopsis
+
+Class MyApp.MyString [ ClientDataType = VARCHAR] {
+}
+
+Value
+This keyword can take one of the following values:
+
+  • BIGINT
+  • BINARY
+  • BINARYSTREAM
+  • BOOLEAN
+  • CHARACTERSTREAM
+  • CURRENCY
+  • DATE
+  • DECIMAL
+  • DOUBLE
+  • FDATE
+  • FTIMESTAMP
+  • HANDLE
+  • INTEGER
+  • LIST
+  • LONGVARCHAR
+  • NUMERIC
+  • STATUS
+  • TIME
+  • TIMESTAMP
+  • VARCHAR
+
+Description
+This keyword only applies to datatype classes. The value of this keyword
+specifies the client datatype used when this class is projected via the ActiveX
+or Java bindings.
+Data type classes must specify a client data type. This keyword is ignored for
+non-datatype classes.
+Default Value
+The default value for the ClientDataType keyword is VARCHAR.
+
+ #}}}
+ClientName                              *class_clientname* #{{{
+
+An alias used by client projections of this class.
+Synopsis
+
+Class MyApp.MyClass [ClientName = _MyClass] {
+}
+
+Value
+The value of this keyword is a string.
+Description
+This keyword lets you define an alternate name for a class when it is projected
+to a client language (such as when using the Caché Java binding).
+Default Value
+The default is an empty string indicating that the class name is used as the
+client name.
+
+ #}}}
+CompileAfter                            *compileafter* #{{{
+
+Indicates that the class compiler should compile this class after the specified
+classes.
+Synopsis
+
+Class MyApp.Class2 [CompileAfter = Class1] {
+}
+
+Value
+The value of this keyword is a list of one or more class names or an empty
+string.
+Description
+Indicates that the class compiler should compile this class after the specified
+classes. Typically this is used when there is a dependency that the compiler
+cannot detect between classes such that one must be compiled after another.
+This keyword affects only compilation order, not runtime behavior.
+Note:
+The CompileAfter keyword does not ensure the specified classes are runnable
+before compiling this class. See also the DependsOn keyword.
+Default Value
+The default value for the CompileAfter keyword is an empty string.
+
+ #}}}
+DdlAllowed                              *ddlallowed* #{{{
+
+In the case of a persistent class, indicates whether or not DDL statements can
+be used to alter or delete the class definition.
+Synopsis
+
+Class MyApp.Person Extends %Persistent [ClassType = persistent, DdlAllowed] {
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+In the case of a persistent class, indicates whether or not DDL statements can
+be used to alter or delete the class definition. Typically you will not want
+SQL users to be able to modify classes using DDL statements. This flag lets you
+control such behavior. When this flag is not present, SQL DDL statements (such
+as DROP TABLE, ALTER TABLE, DROP INDEX, etc.) cannot be executed on the class'
+SQL table representation.
+If you create a class by executing a DDL Create Table statement, the DdlAllowed
+keyword will initially be set to true for this class.
+Default Value
+The default value for the DdlAllowed keyword is false.
+
+ #}}}
+DependsOn                               *dependson* #{{{
+
+Specifies other classes that must be runnable before this class can be
+compiled.
+Synopsis
+
+Class MyApp.Person  [DependsOn=MyApp.BaseClass] {
+}
+
+Value
+The value of this keyword is a list of other classes.
+Description
+Specifies other classes that must be runnable before this class can be
+compiled. This is useful if compilation of this class uses these other classes
+in the method generator logic. It is also useful if the class contains initial
+expressions that invoke other classes.
+Note:
+See also the CompileAfter keyword.
+Default Value
+The default value for the DependsOn keyword is an empty string.
+
+ #}}}
+Description                             *class_description* #{{{
+
+Specifies a description of the class.
+Synopsis
+
+/// This is a class description.
+Class MyApp.Person {
+}
+
+Note:
+The Description keyword is visible only within the Inspector. In a class
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is multi-line text containing up to 16000 characters.
+Description
+Specifies a description of the class. This description is displayed by the
+online class reference.
+A description may include HTML formatting tags. For more details, refer to
+Using HTML in Descriptions in the Class Definition Language reference.
+Default Value
+The default value for the Description keyword is an empty string.
+
+ #}}}
+Dynamic                                 *dynamic* #{{{
+
+For use only by InterSystems, Inc. Studio displays this keyword only in expert
+mode.
+Synopsis
+
+Do not use this keyword.
+
+Value
+Do not use this keyword.
+Default Value
+Do not use this keyword.
+
+ #}}}
+Extends                                 *extends* #{{{
+
+Specifies one or more superclasses for the class.
+Synopsis
+
+Class MyApp.Person Extends (%Persistent,%Populate) { }
+
+Note:
+Extends provides an interface to the Super keyword in class definitions.
+Value
+The value of this keyword is a list of one or more class names.
+Description
+Specifies one or more superclasses for the class. The first such class is
+referred to as the primary superclass; any additional classes are secondary
+superclasses.
+Default Value
+Because the default value for the Super keyword is an empty string, the default
+syntax for Extends is to have a class definition of the form:
+
+Class User.MyClass
+{
+
+}
+
+
+ #}}}
+Final                                   *class_final* #{{{
+
+Specifies that the class cannot have subclasses.
+Synopsis
+
+Class MyApp.Exam As %Persistent [ ClassType = persistent, Final ] {
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that the class cannot have subclasses. You cannot create any
+additional classes that use a Final class as a superclass. Also, if a class is
+final, the class compiler may take advantage of certain code generation
+optimizations (related to the fact that instances of a final class cannot be
+used polymorphically).
+Default Value
+The default value for the Final keyword is false.
+
+ #}}}
+Hidden                                  *hidden* #{{{
+
+Specifies that this class is not typically listed when viewing the contents of
+the class dictionary.
+Synopsis
+
+Class MyApp.Person [ Hidden] {
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this class is not listed when viewing the contents of the class
+dictionary. This is used for certain private classes within the Caché class
+library.
+Default Value
+The default value for the Hidden keyword is false.
+
+ #}}}
+Import                                  *import* #{{{
+
+Specifies one or more class packages to import for this class.
+Synopsis
+
+Import MyPackage
+Class MyApp.MyClass {
+}
+
+Value
+The value of this keyword is a list of one or more class package names.
+Description
+The Import keyword specifies the names of any packages that you wish your class
+to import from. When the class is compiled, the class compiler searches these
+packages to resolve any unqualified class names. Also, an #IMPORT statement is
+placed in the generated code.
+Note:
+Once you have any #IMPORT statement, the User package is not automatically
+imported.
+For more information on packages, refer to the Packages chapter in the 
+Using Caché Objects.
+Default Value
+The default value for the Import keyword is an empty string.
+
+ #}}}
+IncludeCode                             *includecode* #{{{
+
+Specifies an optional list of Caché include (.INC) files to use when compiling
+this class.
+Synopsis
+
+Include MyCode
+
+Class MyApp.MyClass
+{
+...
+}
+
+Note:
+The IncludeCode keyword is visible only within the Inspector. In a class
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is a list of one or more include (.INC) files.
+Description
+Specifies an optional list of Caché include (.INC) files used when compiling
+this class. For multiple files, use a comma-delimited list where the entire
+list is in parenthesis, such as (File1, File2).
+Default Value
+The default value for the IncludeCode keyword is an empty string.
+
+ #}}}
+IncludeGenerator                        *includegenerator* #{{{
+
+Specifies an optional list of Caché include (.INC) files used when compiling
+this class' method generator methods.
+Synopsis
+
+IncludeGenerator MyGenerator
+
+Class MyApp.MyClass
+{
+...
+}
+
+Value
+The value of this keyword is a list of one or more include (.INC) files.
+Description
+Specifies an optional list of Caché include (.INC) files used when compiling
+this class' method generator methods. For multiple files, use a comma-delimited
+list where the entire list is in parenthesis, such as (File1, File2).
+Default Value
+The default value for the IncludeGenerator keyword is an empty string.
+
+ #}}}
+Language                                *class_language* #{{{
+
+Specifies the default language used to implement methods for this class.
+Synopsis
+
+Class MyApp.MyClass [Language = Basic] {
+}
+
+Value
+This keyword can take one of the following values:
+
+  • cache  Caché ObjectScript
+  • basic  Basic
+  • java  Java
+
+Description
+The default language used to implement methods for this class. Individual
+methods can override this value using the method’s Language keyword.
+Java methods only apply when you are using the Caché Java Binding. When Caché
+projects Java classes from the Caché definition, it includes any Java methods.
+These methods run directly within the Java Virtual Machine.
+Default Value
+The default value for the Language keyword is cache.
+
+ #}}}
+Modified                                *modified* #{{{
+
+Deprecated. Specifies how instances of this class monitor how attributes of the
+class have changed since the last save. Studio displays this keyword only in
+expert mode.
+Synopsis
+
+Class MyApp.MyClass [ Modified = 1] {
+}
+
+Value
+This keyword can take one of the following values:
+
+  • 1
+
+Description
+Specifies how instances of this class monitor how attributes of the class have
+changed since the last save. This keyword is deprecated and should not be used
+in new applications.
+Default Value
+The default value for the Modified keyword is 0.
+
+ #}}}
+Name (Class)                            *class_name* #{{{
+
+The name of the class.
+Synopsis
+
+Class MyApp.MyClass {
+}
+
+Note:
+The Name keyword is visible only within the Inspector. In a class definition,
+you specify a value for this keyword as shown in the preceding syntax.
+Value
+The value of this keyword is a valid class name (including the package name).
+Description
+The name of the class including its packages. The class name cannot be changed
+once a class definition has been saved and compiled.
+Default Value
+Not applicable. All class definitions must have a class name.
+
+ #}}}
+OdbcType                                *odbctype* #{{{
+
+In the case of a data type class, specifies the type used when exposed via ODBC
+or JDBC. Data type classes must specify an ODBC type.
+Synopsis
+
+Class MyApp.MyString [ ClassType = DataType, OdbcType = VARCHAR] {
+}
+
+Value
+This keyword can take one of the following values:
+
+  • BIGINT
+  • BIT
+  • DATE
+  • DOUBLE
+  • INTEGER
+  • LONGVARBINARY
+  • LONGVARCHAR
+  • NUMERIC
+  • RESULTSET
+  • SMALLINT
+  • STRUCT
+  • TIME
+  • TIMESTAMP
+  • TINYINT
+  • VARBINARY
+  • VARCHAR
+
+Description
+In the case of a data type class, specifies the type used when exposed via ODBC
+or JDBC. Data type classes must specify an ODBC type.
+Default Value
+The default value for the OdbcType keyword is VARCHAR.
+
+ #}}}
+Owner                                   *owner* #{{{
+
+Specifies the owner of the class and its corresponding table.
+Synopsis
+
+Class MyApp.Person Extends %Persistent [ ClassType = persistent, Owner = "Jack"] {
+}
+
+Value
+The value of this keyword is an owner name.
+Description
+Specifies the owner of the class and its corresponding table. By default,
+classes and tables are owned by _SYSTEM. This keyword is only applicable to
+persistent classes; it is ignored by other class types.
+Default Value
+The default value for the Owner keyword is an empty string which indicates that
+this class is owned by the built-in user:  _SYSTEM ).
+
+ #}}}
+ProcedureBlock                          *class_procedureblock* #{{{
+
+Specifies that each ObjectScript method in this class is a procedure block.
+Synopsis
+
+Class MyApp.MyClass [ProcedureBlock] {
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that the class uses Caché ObjectScript procedure blocks when
+generating code for each of its methods. This can be overridden by individual
+methods using the method ProcedureBlock keyword. This keyword is ignored in the
+case of Basic methods.
+Within Caché ObjectScript, methods can be implemented as procedure blocks or
+not. Procedure blocks enforce variable scoping: methods cannot see variables
+defined by their caller. New applications use procedure blocks; non-procedure
+blocks exist for backwards compatibility.
+This keyword is new in Caché v5.0. For classes created before Caché v5.0, the
+object dictionary upgrade mechanism explicitly sets the value of the 
+ProcedureBlock keyword to false to preserve existing behavior.
+Default Value
+The default value for the ProcedureBlock keyword is true.
+
+ #}}}
+PropertyClass                           *propertyclass* #{{{
+
+For use only by InterSystems, Inc. Studio displays this keyword only in expert
+mode.
+Synopsis
+
+Do not use this keyword.
+
+Value
+Do not use this keyword.
+Default Value
+Do not use this keyword.
+
+ #}}}
+ServerOnly                              *class_serveronly* #{{{
+
+Specifies that a class will not be projected to a Java or C++ client.
+Synopsis
+
+Class Sample.NewClass1  [ ServerOnly = 0 ]
+{
+
+}
+
+Value
+The value of this keyword is one of the following:
+
+  • 0 means that this class can be projected.
+  • 1 means that this class will not be projected.
+  • "" means that this class will not be projected if it is a stub (but will be
+    projected if it is not a stub).
+
+Description
+Specifies that a class will not be projected to a Java or C++ client.
+Default Value
+The default value for the ServerOnly keyword is an empty string, indicating
+that the class will be projected.
+
+ #}}}
+SoapBindingStyle                        *class_soapbindingstyle* #{{{
+
+Specifies the binding style or SOAP invocation mechanism used by any Web
+methods defined in this class. This keyword affects the format of the SOAP body
+(but not any SOAP headers).
+Synopsis
+
+Class MyApp.MyClass [SoapBindingStyle = rpc] { }
+
+Value
+This keyword can take one of the following values:
+
+  • document  Web methods in this class use document-style binding by default.
+  • rpc  Web methods in this class use RPC-style binding by default.
+
+Description
+This keyword lets you specify the default binding style used by any Web methods
+defined in this class, and it applies only to Web methods. You can override
+this for individual methods, by using the method keyword of the same name.
+Chapter 7 of the SOAP standard v1.1,  Using SOAP for RPC, specifies that the
+binding style should be  rpc . However, most SOAP clients, including .NET, use 
+ document style binding, which is the default for this keyword.
+For objects of type %XML.DataSet, not all permutations of the SoapBindingStyle
+and SoapBodyUse keywords are permitted, as the following table summarizes:
+Permutations of SoapBindingStyle and SoapBodyUse
+
+                                     SoapBodyUse=literal        SoapBodyUse=
+                                          (default)                encoded
+
+SoapBindingStyle=document        supported                    not supported
+(default)
+
+SoapBindingStyle=rpc             supported                    supported
+
+For an introduction to Web methods, see the WebMethod keyword. For more
+details, see the manual Using SOAP and Web Services with Caché.
+Default Value
+The default value for the SoapBindingStyle keyword is document.
+
+ #}}}
+SoapBodyUse                             *class_soapbodyuse* #{{{
+
+Specifies the encoding for any Web methods defined in this class. This controls
+the encoding used by the inputs and outputs of the Web methods.
+Synopsis
+
+Class MyApp.MyClass [SoapBodyUse = encoded] {
+}
+
+Value
+This keyword can take one of the following values:
+
+  • encoded  Web methods in this class use SOAP-encoded data by default.
+  • literal  Web methods in this class use literal data by default.
+
+Description
+This keyword lets you specify the default encoding used by any Web methods
+defined in this class, and it applies only to Web methods. You can override
+this for individual methods, by using the method keyword of the same name.
+The SOAP standard v1.1 (Chapter 5) specifies SOAP-encoding ( encoded ).
+However, most SOAP clients, including .NET, use  literal style binding, which
+is the default for this keyword.
+For objects of type %XML.DataSet, not all permutations of the SoapBindingStyle
+and SoapBodyUse keywords are permitted, as the following table summarizes:
+
+                                     SoapBodyUse=literal        SoapBodyUse=
+                                          (default)                encoded
+
+SoapBindingStyle=document         supported                   not supported
+(default)
+
+SoapBindingStyle=rpc              supported                   supported
+
+For an introduction to Web methods, see the WebMethod keyword. For more
+details, see the manual Using SOAP and Web Services with Caché.
+Default Value
+The default value for the SoapBodyUse keyword is literal.
+
+ #}}}
+SqlCategory                             *sqlcategory* #{{{
+
+In the case of a data type class, specifies a type to use for calculations in
+SQL.
+Synopsis
+
+Class MyApp.MyString [ClassType = DataType, SQLCategory = STRING] {
+}
+
+Value
+This keyword can take one of the following values:
+
+  • DATE
+  • DOUBLE
+  • INTEGER
+  • NAME
+  • NUMERIC
+  • STRING
+  • TIME
+  • TIMESTAMP
+
+Description
+In the case of a data type class, specifies a type to use for calculations in
+SQL.
+Each data type class must specify an SQL category.
+When creating a new data type class, use the SQL category value that most
+closely matches the data type you are creating, or, better still, subclass an
+existing data type class and inherit its SQL category.
+Default Value
+The default value for the SqlCategory keyword is STRING.
+
+ #}}}
+SqlRoutinePrefix                        *sqlroutineprefix* #{{{
+
+Deprecated.
+Synopsis
+
+Deprecated.
+
+Value
+The value of this keyword is a COS name.
+Description
+Deprecated.
+Default Value
+The default value for the SqlRoutinePrefix keyword is an empty string.
+
+ #}}}
+SqlRowIdName                            *class_sqlrowidname* #{{{
+
+Specifies an alternate SQL field name for the ID column.
+Synopsis
+
+Class MyApp.MyClass [SqlRowIdName = MyId] {
+}
+
+Value
+The value of this keyword is an SQL identifier.
+Description
+In the case of a persistent class, specifies an alternate SQL field name used
+for the ID column.
+When a persistent class is projected as an SQL table, the Object Identity value
+for each object is projected as an SQL column; the Row ID column. By default,
+the Row ID column is called ID. If the class has another field named ID, then 
+ID1 is used (and so on). The SqlRowIdName keyword lets you set the name of the
+Row Id column directly.
+This keyword is ignored for non-persistent classes.
+Default Value
+The default value for the SqlRowIdName keyword is an empty string indicating
+that the default ID name of ID is to be used.
+
+ #}}}
+SqlRowIdPrivate                         *sqlrowidprivate* #{{{
+
+Specifies whether the ID column is projected to ODBC / JDBC as a hidden field.
+Synopsis
+
+Class MyApp.MyClass [SqlRowIdPrivate] {
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+In the case of a persistent class, specifies whether the ID column is projected
+to ODBC and JDBC as a hidden field.
+When a persistent class is projected as an SQL table, the Object Identity value
+for each object is projected as an SQL column; the Row ID column. The
+SqlRowIdPrivate keyword lets you specify whether this Row ID column should be 
+ hidden from ODBC and JDBC-based queries. If the row ID column is hidden it
+will a) not be reported as a column by the various catalog queries and b) it
+will not be included in SELECT * query. An ODBC or JDBC client can SELECT this
+column if it is explicitly placed within the SELECT clause of a query (by
+definition, you cannot use a Row ID column in an UPDATE or INSERT statement as
+the value of the Row ID cannot be modified or directly set).
+Typically you use this keyword for cases where you are dealing with legacy
+relational data and do not want the Row ID column to be seen by reporting
+tools.
+This keyword is ignored for non-persistent classes.
+Default Value
+The default value for the SqlRowIdPrivate keyword is false.
+
+ #}}}
+SqlTableName                            *sqltablename* #{{{
+
+Specifies the table name used to identify the class in its SQL projection.
+Synopsis
+
+Class MyApp.Person Extends %Persistent [ClassType = persistent, SqlTableName = DBTable] {
+}
+
+Value
+The value of this keyword is a valid SQL identifier.
+Description
+In the case of a persistent class, specifies the table name used to identify
+the class in its SQL projection. By default, the SQL table name is the same as
+the class name.
+Typically you use this keyword when your class name is a SQL reserved word (not
+uncommon) or if you want your SQL table to contain characters not supported by
+class names (such as the  _ character).
+This keyword is ignored by non-persistent classes.
+Default Value
+The default value for the SqlTableName keyword is an empty string indicating
+that the class name should be used as the SQL table name.
+
+ #}}}
+StorageStrategy                         *storagestrategy* #{{{
+
+Name of the storage definition used to control persistence for this class.
+Synopsis
+
+Class MyApp.MyClass Extends %Persistent [ ClassType = persistent, StorageStrategy = MyStorage ]
+{
+
+}
+
+Value
+The value of this keyword is the name of a storage definition within this
+class.
+Description
+This keyword specifies which storage definition is used to define the storage
+structure used by a persistent class (or the serialized state of a serial
+class).
+Each persistent class contains one or more storage definitions that define the
+storage structure (for example, a set of globals and subnodes) used to store a
+persistent object.
+Typically you do not worry about this keyword or about storage structures; the
+class compiler will automatically define a storage structure named  Default and
+maintain it (add new fields as appropriate) for you. It is possible to create
+more than one storage definition for a class. In this case, this keyword is
+used to specify which storage definition the class compiler should use.
+This keyword is used by persistent and serial classes; it is ignored by all
+other class types.
+Default Value
+The default value for the StorageStrategy keyword is an empty string which
+indicates that the default storage definition, named  Default , should be used
+to provide persistence.
+
+ #}}}
+Super                                   *super* #{{{
+
+Specifies one or more superclasses for the class.
+Synopsis
+Note:
+There is no synopsis on this page because a class definition uses an Extends
+clause to specify superclasses.
+Value
+The value of this keyword is a list of one or more class names.
+Description
+Specifies one or more superclasses for the class. The value or values for Super
+appear in the Studio Inspector (and the value or values for Extends appear in
+the code for the class definition. The first such class is referred to as the
+primary superclass; any additional classes are secondary superclasses.
+Default Value
+The default value for the Super keyword is an empty string.
+
+ #}}}
+System                                  *system* #{{{
+
+For use only by InterSystems, Inc. Studio displays this keyword only in expert
+mode.
+Synopsis
+
+Do not use this keyword.
+
+Value
+Do not use this keyword.
+Default Value
+Do not use this keyword.
+
+ #}}}
+ViewQuery                               *viewquery* #{{{
+
+SQL Query for a view definition class.
+Synopsis
+
+ViewQuery = { SELECT Name FROM Sample.Person}
+
+Value
+The value of this keyword is an SQL statement.
+Description
+When you define an SQL view (using the DDL Create View statement or using the
+System Management Portal), the class dictionary automatically creates a class
+definition to hold the view definition. This class definition has a ClassType
+of  view and stores the SQL statement on which the view is based in its
+ViewQuery keyword.
+This mechanism is internal; users are not expected to create view class nor to
+modify the ViewQuery keyword. Instead, use the normal mechanisms (DDL or the
+System Management Portal) for managing views.
+This keyword is ignored by all non-view classes.
+Default Value
+The default value for the ViewQuery keyword is an empty string.
+
+ #}}}
+ #}}}
+ForeignKey #{{{
+Description                             *foreignkey_description* #{{{
+
+Specifies the description of a foreign key.
+Synopsis
+
+/// This is a description
+
+Note:
+The Description keyword is visible only within the Inspector. In a foreign key
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is multi-line text containing up to 32000 characters.
+Description
+Specifies a description of the SQL foreign key. This description is displayed
+by the online class reference.
+Default Value
+The default description for a foreign key is an empty string.
+
+ #}}}
+Internal                                *foreignkey_internal* #{{{
+
+Specifies that this foreign key should not be displayed in the class
+documentation.
+Synopsis
+
+ForeignKey EmpKey(EmpId) References MyApp.Employee(EmpID) [ Internal];
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this foreign key should not be displayed in the class
+documentation. This keyword is useful if you want users to see a class but not
+see all its members.
+Default Value
+The default value for the Internal keyword is false.
+
+ #}}}
+Name (Foreign Key)                      *foreignkey_name* #{{{
+
+Specifies the name of the foreign key.
+Synopsis
+
+ForeignKey FKey1 ( StateName ) References StateTable ( StateKey );
+
+Note:
+The Name keyword is visible only within the Inspector. In a foreign key
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is a valid name.
+Description
+The name of the SQL foreign key. This name must be a valid class member name
+and must not conflict with any other class member names.
+Default Value
+There is no default name for a foreign key.
+
+ #}}}
+OnDelete                                *ondelete* #{{{
+
+Specifies OnDelete referential action.
+Synopsis
+
+ForeignKey EmpKey(EmpId) References MyApp.Employee(EmpID) [ OnDelete = cascade];
+
+Value
+This keyword can take one of the following values:
+
+  • cascade
+  • noaction
+  • setdefault
+  • setnull
+
+The value of this keyword can also be an empty string.
+Description
+This keyword defines the referential action that occurs when a key value is
+deleted from the foreign table.
+Default Value
+The default value for the OnDelete keyword is an empty string.
+
+ #}}}
+OnUpdate                                *onupdate* #{{{
+
+Specifies OnUpdate referential action.
+Synopsis
+
+ForeignKey EmpKey(EmpId) References MyApp.Employee(EmpID) [ OnUpdate = cascade];
+
+Value
+This keyword can take one of the following values:
+
+  • cascade
+  • noaction
+  • setdefault
+  • setnull
+
+The value of this keyword can also be an empty string.
+Description
+This keyword defines the referential action that occurs when a key value is
+updated in the foreign table.
+Default Value
+The default value for the OnUpdate keyword is an empty string.
+
+ #}}}
+Properties                              *foreignkey_properties* #{{{
+
+Specifies the properties constrained by the foreign key.
+Synopsis
+
+ForeignKey EmpKey(Property1,Property2) References MyApp.Employee(EmpID);
+
+Note:
+The Properties keyword is visible only within the Inspector. In a class
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is a property name (in the class defining the foreign key).
+Description
+This value specifies one or more properties in the current class whose values
+are constrained by the foreign key (that is, they must match a value in the
+foreign table).
+Default Value
+At least one property is required; there is no default.
+
+ #}}}
+ReferencedClass                         *referencedclass* #{{{
+
+Specifies the class referenced by a foreign key.
+Synopsis
+
+ForeignKey EmpKey(Property1,Property2) References ReferencedClass(EmpID);
+
+Note:
+The ReferencedClass keyword is visible only within the Inspector. In a class
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is a class name.
+Description
+This value specifies the name of the class containing the key referred to by
+this foreign key.
+Default Value
+There is no default value.
+
+ #}}}
+ReferencedKey                           *referencedkey* #{{{
+
+Specifies the key referenced by a foreign key.
+Synopsis
+
+ForeignKey EmpKey(Property1,Property2) References MyApp.Employee(ReferencedKey);
+
+Note:
+The ReferencedKey keyword is visible only within the Inspector. In a class
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The name of a key (unique index) within the referenced class.
+Description
+This value specifies the key (name of a unique index), within a class, that
+provides the set of allowed values for this foreign key.
+Default Value
+There is no default key.
+
+ #}}}
+SqlName                                 *foreignkey_sqlname* #{{{
+
+Specifies an SQL alias for the foreign key.
+Synopsis
+
+ForeignKey EmpKey(EmpId) References a(b) [ SqlName = _MyKey ];
+
+Value
+The value of this keyword is an SQL identifier.
+Description
+This keyword lets you define an alternate name for this foreign key when
+referred to via SQL.
+Default Value
+The default value for the SqlName keyword is an empty string.
+
+ #}}}
+ #}}}
+Index #{{{
+Condition                               *index_condition* #{{{
+
+In the case of a conditional index, specifies the condition that must be met
+for an entry to be included in the index.
+Synopsis
+
+ Not for use in new applications.
+
+Value
+The value of this keyword is an expression.
+Description
+In the case of a conditional index, specifies the condition that must be met
+for an entry to be included in the index.
+This keyword is for migrating existing applications to Caché SQL and not for
+use in new applications.
+Default Value
+The default value for the Condition keyword is an empty string.
+
+ #}}}
+Data                                    *index_data* #{{{
+
+Specifies a list of properties whose values are to be stored within this index.
+Synopsis
+
+Index NameIDX On Name [Data = Name];
+Index ZipIDX On ZipCode [Data = (City,State)];
+
+Value
+The value of this keyword is a property name or a list of property names.
+Description
+Specifies a list of properties whose values are to be stored within this index.
+You cannot use this keyword with a bitmap index.
+Refer to the documentation on indices for more details.
+Default Value
+The default value for the Data keyword is an empty string.
+
+ #}}}
+Description                             *index_description* #{{{
+
+Specifies a description of the index.
+Synopsis
+
+/// This is a description
+
+Note:
+The Description keyword is visible only within the Inspector. In an index
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is multi-line text containing up to 32000 characters.
+Description
+Specifies a description of the index. This description is displayed by the
+online class reference.
+Default Value
+The default description for an index is an empty string.
+
+ #}}}
+Extent                                  *extent* #{{{
+
+Defines an extent index.
+Synopsis
+
+Index State [Extent];
+
+Value
+The value of this keyword is a boolean value.
+Description
+An extent index is used to keep track of which object instances belong to a
+subclass. If you are using bitmap indices, then an extent index is
+automatically maintained and there is no need to define one.
+Default Value
+The default value for the Extent keyword is false.
+
+ #}}}
+Final                                   *index_final* #{{{
+
+Specifies that the index is final.
+Synopsis
+
+Index ThisIndex on SomeData [ Final ]
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that a subclass cannot override the implementation of the index.
+Default Value
+The default value for the Final keyword is false.
+
+ #}}}
+IdKey                                   *idkey* #{{{
+
+Specifies an index to be used as the Object ID.
+Synopsis
+
+Index PartNum On PartNum [IdKey];
+
+Value
+The value of this keyword is a boolean value.
+Description
+This keyword specifies that the property (properties) defined for this index
+will be used to form the Object Identity value for this object.
+The Object Identity value is used to uniquely locate persistent object
+instances. Once an object using IdKey has been saved, you cannot modify the
+values of any of the properties that make up the IdKey.
+An IdKey index also behaves like a unique index.
+Default Value
+The default value for the IdKey keyword is false.
+
+ #}}}
+Internal                                *index_internal* #{{{
+
+Specifies that this index should not be displayed in the class documentation.
+Synopsis
+
+Index ThisIndex on SomeData [ Internal];
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this index should not be displayed in the class documentation.
+This keyword is useful if you want users to see a class but not see all its
+members.
+Default Value
+The default value for the Internal keyword is false.
+
+ #}}}
+Name (Index)                            *index_name* #{{{
+
+The name of the index.
+Synopsis
+
+Index SalaryIndex On Salary;
+
+Note:
+The Name keyword is visible only within the Inspector. In an index definition,
+you specify a value for this keyword as shown in the preceding syntax.
+Value
+The value is a name.
+Description
+The name of the index. This name must be a valid class member name and must not
+conflict with any other class member names.
+Default Value
+There is no default name for an index.
+
+ #}}}
+PrimaryKey                              *primarykey* #{{{
+
+Specifies that the index is the primary key.
+Synopsis
+
+Index EmpIDX On EmployeeID [PrimaryKey];
+
+Value
+The value of this keyword is a boolean value.
+Description
+This keyword specifies that this index should be reported, via SQL, as being
+the primary key for this class (table).
+A PrimaryKey index also behaves like a unique index.
+Default Value
+The default value for the PrimaryKey keyword is false.
+
+ #}}}
+Properties                              *index_properties* #{{{
+
+Specifies a list of properties used to build this index. May also include a
+collation specification for each property.
+Synopsis
+
+Index Idx1 On Name;
+Index Idx2 On (City,State);
+
+
+Note:
+The Properties keyword is visible only within the Inspector. In a class
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is a property name or a list of property names.
+Description
+Specifies a list of properties used to build this index. This may also include
+a collation specification for each property; see the  Index Collation chapter
+of Using Caché Objects.
+Default Value
+At least one property is required.
+
+ #}}}
+SqlName                                 *index_sqlname* #{{{
+
+Specifies an SQL alias for the index.
+Synopsis
+
+Index Name On Name [SqlName = _Name];
+
+Value
+The value of this keyword is an SQL identifier.
+Description
+This keyword lets you define an alternate name for this index when referred to
+via SQL.
+Default Value
+The default value for the SqlName keyword is an empty string. This indicates
+that the SQL name for this index is its index name.
+
+ #}}}
+Type                                    *index_type* #{{{
+
+Specifies the type of the index.
+Synopsis
+
+Index State On State [Type = bitmap];
+
+Value
+This keyword can take one of the following values:
+
+  • bitmap  a bitmap index
+  • bitslice  a bitslice index
+  • index  a standard index
+  • key  deprecated
+
+The value of this keyword can also be an empty string.
+Description
+Specifies the type of the index, specifically whether the index is implemented
+as a bitmap index or a standard (regular, non-bitmap) index.
+A bitmap index cannot be marked as unique.
+Refer to the documentation on indices for more details.
+Default Value
+The default value for the Type keyword is index.
+
+ #}}}
+Unique                                  *unique* #{{{
+
+Specifies that the index is unique.
+Synopsis
+
+Index SSN On SSN [Unique];
+
+Value
+The value of this keyword is boolean value.
+Description
+The Unique keyword, if present, indicates that this is a unique index.
+The property (or properties) indexed by a unique index are constrained to have
+unique values (that is, no two instances can have the same collated value)
+within the extent (set of all objects) of the class (table) that defines the
+index.
+A unique index cannot also be a bitmap index.
+Default Value
+The default value for the Unique keyword is false.
+
+ #}}}
+ #}}}
+Method #{{{
+Abstract                                *method_abstract* #{{{
+
+Specifies that this is an abstract method.
+Synopsis
+
+Method MyMethod() [ Abstract ]
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this is an abstract method. An abstract method has no
+implementation and has no executable code generated for it. Abstract methods
+exist solely for the purpose of defining a method signature (or interface) that
+can be overridden and implemented within one or more subclasses. Some examples
+of abstract methods are the various callback methods defined, but not
+implemented by, in the Caché class library.
+Default Value
+The default value for the Abstract keyword is false.
+
+ #}}}
+ClassMethod                             *classmethod* #{{{
+
+Specifies that the method is a class method.
+Synopsis
+
+ClassMethod MyMethod()
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that the method is a class method.
+Every method can be defined as being either an instance or class method.
+Instance methods can only be invoked via an instantiated object while class
+methods can be directly invoked without an object instance.
+Default Value
+The default value for the ClassMethod keyword is false, indicating that the
+method is an instance method.
+
+ #}}}
+ClientName                              *method_clientname* #{{{
+
+An alias used by client projections of this method.
+Synopsis
+
+Method MyMethod() [ ClientName = _MyMethod ]
+{
+}
+
+Value
+The value of this keyword is a string.
+Description
+This keyword lets you define an alternate name for a method when it is
+projected to a client language. This is especially useful if the query name
+contains characters that are not allowed in the client language.
+Default Value
+The default is an empty string indicating that the method name is used as the
+client name.
+
+ #}}}
+CodeMode                                *codemode* #{{{
+
+Specifies how a method is implemented.
+Synopsis
+
+/// An expression method
+Method Double(val As %Integer) As %Integer [CodeMode = expression]
+{
+        val * 2
+}
+
+/// A Method generator
+Method GetClassName() As %String [CodeMode = objectgenerator]
+{
+        Do %code.WriteLine(" Quit """ _ %class.Name _ """")
+        Quit $$$OK
+}
+
+Value
+This keyword can take one of the following values:
+
+  • call  this method is an alias for a routine call (used for wrapping legacy
+    code).
+  • code  this method is implemented as lines of code (the default).
+  • expression  this method is implemented as an expression.
+  • objectgenerator  this method is a method generator.
+
+Note:
+There is an older value for this keyword (generator), which indicates that the
+older, non-object-based method generator should be used. This is only present
+for compatibility with older versions. Newer applications should use 
+objectgenerator.
+Description
+This keyword specifies how a given method is implemented.
+Typically, a method is implemented using one or more lines of code. This is
+indicated by the default CodeMode value of code. In this case, the
+Implementation keyword contains one or more lines of code.
+Certain simple methods can be implemented as expression methods; in certain
+cases the class compiler may replace a call to this method with inline code
+containing the expression. In this case, the Implementation keyword contains a
+simple expression (with no Quit or Return statement).
+Call methods make it possible to create methods that are wrappers for
+pre-existing routines. In this case, the Implementation keyword contains the
+name of a routine and tag name.
+Method generators are programs, invoked by the class compiler when a class is
+compiled, that generate the actual implementation for the given method. In this
+case, the Implementation keyword contains the code for the method generator.
+For more information on method generators, refer to the Method Generators
+section of Using Caché Objects.
+Default Value
+The default value for the CodeMode keyword is code.
+
+ #}}}
+Description                             *method_description* #{{{
+
+Specifies a description of the method.
+Synopsis
+
+/// This is a description
+Method MyMethod()
+{
+}
+
+Note:
+The Description keyword is visible only within the Inspector. In a method
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is multi-line text containing up to 16000 characters.
+Description
+Specifies a description of the method. This description is displayed by the
+online class reference.
+A description may include HTML formatting tags. For more details, refer to
+Using HTML in Descriptions in the Class Definition Language reference.
+Default Value
+The default value for the Description keyword is an empty string.
+
+ #}}}
+ExternalProcName                        *externalprocname* #{{{
+
+Name of this method when it is used as a stored procedure in a foreign
+database.
+Synopsis
+
+Method MyMethod() [ SqlProc, ExternalProcName = MyProcedure ]
+{
+}
+
+Value
+The value of this keyword is a string.
+Description
+This keyword lets you define the name to use for this method when it is used as
+a stored procedure in a foreign database.
+Default Value
+The default is an empty string indicating that the method name is used as the
+stored procedure name.
+
+ #}}}
+Final                                   *method_final* #{{{
+
+Specifies that the method is final and cannot be overridden in a subclass.
+Synopsis
+
+Method MyMethod() [ Final ]
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that a subclass cannot override the implementation of the method.
+Default Value
+The default value for the Final keyword is false.
+
+ #}}}
+FormalSpec                              *method_formalspec* #{{{
+
+Specifies the list of arguments that are passed to the method when it is
+invoked.
+Synopsis
+
+Method MethodA(Arg1 As %Integer, Arg2 As %String)
+{
+}
+
+Method MethodB(ByRef Arg1 As %Integer)
+{
+}
+
+Method MethodC(Arg1 As %Integer = 10)
+{
+}
+
+Note:
+The FormalSpec keyword is visible only within the Inspector. In a class
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is a list of method arguments.
+Description
+This keyword holds the formal specification for a given method. The formal
+specification is a list of a method’s arguments, their types, their call-type
+(ByRef or ByVal), and optional default values. Within Studio, the formal
+specification is displayed within the parentheses () following the method name.
+The class names within the formal specification may contain optional parameter
+values. If the method is used as an SQL stored procedure, then these parameter
+values are used to provide additional information to an ODBC or JDBC client.
+These parameters are ignored in all other cases. For example:
+
+ClassMethod MyProc(data As %String(MAXLEN = 85)) As %Integer [SQLProc]
+{
+  Quit 22
+}
+
+Default Value
+The default value for the FormalSpec keyword is an empty string.
+
+ #}}}
+GenerateAfter                           *generateafter* #{{{
+
+In the case of a method generator method, specifies that the generator should
+be invoked after the listed methods are generated.
+Synopsis
+
+Method MethodB() [ CodeMode = ObjectGenerator, GenerateAfter = MethodA ]
+{
+}
+
+Method Method3() [ CodeMode = ObjectGenerator, GenerateAfter = (Method1, Method2) ]
+{
+}
+
+Value
+The value of this keyword is a list of one or more method names.
+Description
+In the case of a method generator method, specifies that the generator should
+be invoked after the listed methods are generated. This keyword is useful when
+you need to control the order in which your method generators are invoked.
+Default Value
+The default value for the GenerateAfter keyword is an empty string.
+
+ #}}}
+Implementation                          *implementation* #{{{
+
+The code that is executed when the method is invoked. In the case of an
+expression method, this is an expression. In the case of a call method, this is
+the name of a Caché routine to call.
+Synopsis
+
+Method MyMethod() As %Integer
+{
+        // this is the implementation
+        Quit 42
+}
+
+Note:
+The Implementation keyword is visible only within the Inspector. In a class
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword one or more lines of code.
+Description
+The code that is executed when the method is invoked. In the case of an
+expression method, this is an expression. In the case of a call method, this is
+the name of a Caché routine to call.
+To specify the programming language used, use the class-level Language or
+method-level Language keyword.
+Default Value
+The default value for the Implementation keyword is an empty string.
+
+ #}}}
+ Internal                               *method_internal* #{{{
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this method should not be displayed in the class documentation.
+This keyword is useful if you want users to see a class but not see all its
+members.
+Default Value
+The default value for the Internal keyword is false.
+
+ #}}}
+Language                                *method_language* #{{{
+
+The language used to implement this method.
+Synopsis
+
+Method MyMethod() As %Integer [Language = basic]
+{
+        Return 12
+}
+
+Value
+This keyword can take one of the following values:
+
+  • cache  Caché ObjectScript
+  • basic  Basic
+  • java  Java
+  • javascript  JavaScript
+  • mvbasic  MultiValue Basic
+  • tsql  Transact-SQL
+
+The value of this keyword can also be an empty string, in which case the
+language specified at the class-level Language keyword is used.
+Description
+The language used to implement this method.
+Java methods only apply when you are using the Caché Java Binding. When Caché
+projects Java classes from the Caché definition, it includes any Java methods.
+These methods run directly within the Java Virtual Machine.
+Default Value
+The default value for the Language keyword is an empty string.
+
+ #}}}
+Name (Method)                           *method_name* #{{{
+
+The name of the method.
+Synopsis
+
+Method Print() {
+}
+
+Note:
+The Name keyword is visible only within the Inspector. In a method definition,
+you specify a value for this keyword as shown in the preceding syntax.
+Value
+The value of this keyword is a name.
+Description
+The name of the method. This name must be a valid class member name and must
+not conflict with any other class member names.
+Default Value
+There is no default name for a method.
+
+ #}}}
+NotForProperty                          *notforproperty* #{{{
+
+Value
+The value of this keyword is a boolean value.
+Description
+Indicates that a method of a datatype class is not used to generate property
+method when the datatype is used within another class.
+This keyword is ignored by non-datatype classes.
+Default Value
+The default value for the NotForProperty keyword is false.
+
+ #}}}
+NotInheritable                          *method_notinheritable* #{{{
+
+Specifies that this method cannot be inherited in subclasses.
+Synopsis
+
+Method MyMethod() As %Integer [NotInheritable]
+{
+   //method details
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this method cannot be inherited in subclasses.
+Important:
+While having a member not be inheritable by its subclasses can be very useful
+in some cases, the keyword should be used rarely and judiciously, as it breaks
+the inheritance contract.
+Default Value
+The default value for the NotInheritable keyword is false.
+
+ #}}}
+PlaceAfter                              *placeafter* #{{{
+
+Specifies that the class compiler should place this method after the listed
+methods in the routine it creates for the class.
+Synopsis
+
+Method MethodB() [ PlaceAfter = MethodA ]
+{
+}
+
+Method Method3() [ PlaceAfter = (Method1, Method2) ]
+{
+}
+
+
+
+Value
+The value of this keyword is a list of one or more method names.
+Description
+Specifies that the class compiler should place this method after the listed
+methods in the routine it creates for the class. This keyword is for rare cases
+where you need to control the order in which the class compiler generates code
+for your method.
+Default Value
+The default value for the PlaceAfter keyword is an empty string.
+
+ #}}}
+Private                                 *method_private* #{{{
+
+Specifies that the method is private and be invoked only by instance methods of
+this class (or its subclasses).
+Synopsis
+
+Method MyMethod() [Private]
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that the method is private. Private methods can only be invoked by
+instance methods of this class (or its subclasses).
+Default Value
+The default value for the Private keyword is false.
+
+ #}}}
+ProcedureBlock                          *method_procedureblock* #{{{
+
+Specifies that a Caché ObjectScript method will use procedure blocks.
+Synopsis
+
+Method MyMethod() [ ProcedureBlock ]
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that a Caché ObjectScript method will use procedure blocks.
+Within Caché ObjectScript, methods can be implemented as procedure blocks or
+not. Procedure blocks enforce variable scoping: methods cannot see variables
+defined by their caller. New applications use procedure blocks; non-procedure
+blocks exist for backwards compatibility.
+Default Value
+The default value for the ProcedureBlock keyword is an empty string. In this
+case, the value of the class-level ProcedureBlock keyword is used.
+
+ #}}}
+PublicList                              *publiclist* #{{{
+
+Specifies the public list for a Caché ObjectScript method.
+Synopsis
+
+Method MyMethod() [ PublicList = (a,b,c) ]
+{
+}
+
+Value
+The value of this keyword is a list of one or more variable names.
+Description
+Specifies the public list for a Caché ObjectScript method.
+This keyword is used only if the ProcedureBlock keyword is set to true. In
+Caché ObjectScript, the public list specifies a list of variables that are
+scoped as public variables. Public variables are visible to any methods invoked
+from the method defining the public list.
+Default Value
+The default value for the PublicList keyword is an empty string.
+
+ #}}}
+ReturnResultsets                        *returnresultsets* #{{{
+
+Specifies that the method returns at least one result set.
+Synopsis
+
+ClassMethod CustomSets() As %Integer [ ReturnResultsets, SqlName = CustomSets, SqlProc ] {              //implementation }
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that the method returns at least one result set. Set this keyword to
+true if the method might return one or more result sets. If you do not, then
+the result sets cannot be retrieved by xDBC clients. For stored functions, the
+value must be false.
+Default Value
+The default value for the ReturnResultsets keyword is false.
+
+ #}}}
+ReturnType                              *returntype* #{{{
+
+Specifies the data type of the value returned by a call to the method.
+Synopsis
+
+/// Returns an Integer
+Method MethodA() As %Integer
+{
+}
+
+/// Returns no value
+Method MethodB()
+{
+}
+
+Note:
+The ReturnType keyword is visible only within the Inspector. In a method
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is a class name or an empty string.
+Description
+Specifies the data type of the value returned by a call to the method. Setting
+the return type to an empty string specifies that there is no return value.
+The class name used as the return type may contain optional parameter values.
+If the method is used as an SQL stored procedure, then these parameter values
+are used to provide additional information to an ODBC or JDBC client. These
+parameters are ignored in all other cases. For example:
+
+ClassMethod GetName() As %String(MAXLEN=222) [SQLProc]
+{
+  Quit "Mo"
+}
+
+Default Value
+The default value for the return type is an empty string.
+
+ #}}}
+ReturnTypeParams                        *returntypeparams* #{{{
+
+Specifies a comma-separated list of parameters that apply to the return type of
+the method.
+Synopsis
+
+Method Test() As %String(MAXLEN=100)
+{
+    //implementation
+    quit
+    }
+
+Note:
+The ReturnTypeParams keyword is visible only within the Inspector. In a method
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is a comma-separated list of parameters.
+Description
+Specifies a comma-separated list of parameters that apply to the return type of
+the method. If the method is used as an SQL stored procedure, then these
+parameter values are used to provide additional information to an ODBC or JDBC
+client. These parameters are ignored in all other cases.
+Default Value
+The default value for the ReturnTypeParams keyword is an empty string.
+
+ #}}}
+ServerOnly                              *method_serveronly* #{{{
+
+Specifies that a method will not be projected to a Java or C++ client.
+Synopsis
+
+Method MyMethod() [ ServerOnly=1]
+{
+}
+
+Value
+The value of this keyword is one of the following:
+
+  • 0 means that this method can be projected.
+  • 1 means that this method will not be projected.
+  • "" means that this method will not be projected if it is a stub method (but
+    will be projected if it is not a stub method).
+
+Description
+Specifies that a method will not be projected to a Java or C++ client.
+Tip:
+To see which methods of a class are server-only, use the following utility in
+the Terminal:
+
+do dumpMethods^%occLGUtil("Sample.Person")
+
+The argument is the fully qualified class name. This utility produces a report
+that indicates basic information about each method: whether the method is a
+stub, whether the method is server-only, and (if the method is derived from a
+property) the property from which it is derived.
+Default Value
+The default value for the ServerOnly keyword is an empty string.
+
+ #}}}
+SoapAction                              *soapaction* #{{{
+
+Applies only to Web services. Specifies the HTTP SOAPAction header to use when
+invoking this method as a Web method via HTTP.
+Synopsis
+
+Method MyMethod() [ WebMethod, SoapAction = MySoapAction ]
+{
+}
+
+Value
+This must be an empty string or unique for each method within the Web service.
+Set this keyword equal to a URI that identifies the intent of the SOAP request.
+The SOAPAction header is generally used to route the incoming SOAP message. For
+example, a firewall could use this header to appropriately filter SOAP request
+messages in HTTP.
+Description
+This keyword lets you specify the HTTP SOAPAction header to use when invoking
+this method as a Web method.
+The SOAP-related keywords are meant for use in subclasses of %SOAP.WebService
+and %SOAP.WebClient, but not all these keywords can be used in both places. The
+following table summarizes where the SOAP-related keywords can be used:
+
+     Keyword       Web Service  Web Client
+
+SoapAction         can use      cannot use
+
+SoapMessageName    can use      cannot use
+
+SoapBindingStyle   can use      can use
+
+SoapBodyUse        can use      can use
+
+SoapNameSpace      cannot use   can use
+
+SoapTypeNameSpace  cannot use   can use
+
+For an introduction to Web methods, see the WebMethod keyword. For more
+details, see the manual Using SOAP and Web Services with Caché.
+Default Value
+The default value for the SoapAction keyword is null, and the default 
+SOAPAction header is formed as follows:
+
+SOAPAction: NAMESPACE/Package.Class.Method
+
+where NAMESPACE is the value of the NAMESPACE parameter for the Web service,
+and Package.Class.Method is the name of the method that you are using as a Web
+method. For example:
+
+SOAPAction: http://www.myapp.org/GSOP.WebService.GetPerson
+
+
+ #}}}
+SoapBindingStyle                        *method_soapbindingstyle* #{{{
+
+Specifies the binding style or SOAP invocation mechanism used by this method,
+when it is used as a Web method. This keyword affects the format of the SOAP
+body (but not any SOAP headers).
+Synopsis
+
+Method MyMethod() [ WebMethod, SoapBindingStyle = rpc ]
+{
+}
+
+Value
+This keyword can take one of the following values:
+
+  • document  this Web method uses document-style invocation.
+  • rpc  this Web method uses RPC-style invocation.
+
+Description
+This keyword lets you specify the binding style used by a Web method. It
+overrides the class keyword of the same name.
+If you use this keyword with a method that uses an object of type %XML.DataSet
+as input or output, some limitations apply. Specifically, not all permutations
+of the SoapBindingStyle and SoapBodyUse keywords are permitted, as the
+following table summarizes:
+
+                                     SoapBodyUse=literal        SoapBodyUse=
+                                          (default)                encoded
+
+SoapBindingStyle=document         supported                   not supported
+(default)
+
+SoapBindingStyle=rpc              supported                   supported
+
+The SOAP-related keywords are meant for use in subclasses of %SOAP.WebService
+and %SOAP.WebClient, but not all these keywords can be used in both places. The
+following table summarizes where the SOAP-related keywords can be used:
+
+     Keyword       Web Service  Web Client
+
+SoapAction         can use      cannot use
+
+SoapMessageName    can use      cannot use
+
+SoapBindingStyle   can use      can use
+
+SoapBodyUse        can use      can use
+
+SoapNameSpace      cannot use   can use
+
+SoapTypeNameSpace  cannot use   can use
+
+For an introduction to Web methods, see the WebMethod keyword. For more
+details, see the manual Using SOAP and Web Services with Caché.
+Default Value
+The default value for the SoapBindingStyle keyword is an empty string,
+indicating document-style invocation.
+
+ #}}}
+SoapBodyUse                             *method_soapbodyuse* #{{{
+
+Specifies the encoding used by the inputs and outputs of this method, when it
+is used as a Web method.
+Synopsis
+
+Method MyMethod() As %Integer [ WebMethod, SoapBodyUse = encoded ]
+{
+}
+
+Value
+This keyword can take one of the following values:
+
+  • encoded  this Web method uses SOAP-encoded data.
+  • literal  this Web method uses literal data.
+
+Description
+This keyword lets you specify the encoding for the inputs and outputs of a Web
+method. It overrides the class keyword of the same name.
+If you use this keyword with a method that uses an object of type %XML.DataSet
+as input or output, some limitations apply. Specifically, not all permutations
+of the SoapBindingStyle and SoapBodyUse keywords are permitted, as the
+following table summarizes:
+
+                                     SoapBodyUse=literal        SoapBodyUse=
+                                          (default)                encoded
+
+SoapBindingStyle=document         supported                   not supported
+(default)
+
+SoapBindingStyle=rpc              supported                   supported
+
+The SOAP-related keywords are meant for use in subclasses of %SOAP.WebService
+and %SOAP.WebClient, but not all these keywords can be used in both places. The
+following table summarizes where the SOAP-related keywords can be used:
+
+     Keyword       Web Service  Web Client
+
+SoapAction         can use      cannot use
+
+SoapMessageName    can use      cannot use
+
+SoapBindingStyle   can use      can use
+
+SoapBodyUse        can use      can use
+
+SoapNameSpace      cannot use   can use
+
+SoapTypeNameSpace  cannot use   can use
+
+For an introduction to Web methods, see the WebMethod keyword. For more
+details, see the manual Using SOAP and Web Services with Caché.
+Default Value
+The default value for the SoapBodyUse keyword is an empty string, indicating
+literal-style encoding.
+
+ #}}}
+SoapMessageName                         *soapmessagename* #{{{
+
+Applies only to Web services. Specifies the message name used in the response
+message for this Web method.
+Synopsis
+
+Method MyMethod() As %Integer [ WebMethod, SoapMessageName = MyResponse ]
+{
+}
+
+Value
+This keyword can equal any identifier that is valid in XML.
+Description
+SoapMessageName applies only to Web methods. It controls the name of the
+element that is a child of the SOAP body of the response message.
+The SOAP-related keywords are meant for use in subclasses of %SOAP.WebService
+and %SOAP.WebClient, but not all these keywords can be used in both places. The
+following table summarizes where the SOAP-related keywords can be used:
+
+     Keyword       Web Service  Web Client
+
+SoapAction         can use      cannot use
+
+SoapMessageName    can use      cannot use
+
+SoapBindingStyle   can use      can use
+
+SoapBodyUse        can use      can use
+
+SoapNameSpace      cannot use   can use
+
+SoapTypeNameSpace  cannot use   can use
+
+For an introduction to Web methods, see the WebMethod keyword. For more
+details, see the manual Using SOAP and Web Services with Caché.
+Default Value
+The default value for the SoapMessageName keyword is an empty string,
+indicating that the message name is the name of the Web method with Response
+appended to the end, as follows:
+
+<SOAP-ENV:Body>
+   <DivideResponse xmlns="http://www.myapp.org">
+       <DivideResult>.5</DivideResult>
+   </DivideResponse>
+</SOAP-ENV:Body>
+
+
+ #}}}
+SoapNameSpace                           *method_soapnamespace* #{{{
+
+Applies only to Web clients. Specifies the XML namespace used by a Web method.
+Synopsis
+
+Method GeneratedMethod() [ SoapNameSpace = www.mynamespace.org, WebMethod ]
+{
+   //code generated by WSDL reader
+}
+
+Value
+The value of this keyword is a namespace URI.
+Description
+This keyword specifies the XML namespace used by this Web method.
+The SOAP-related keywords are meant for use in subclasses of %SOAP.WebService
+and %SOAP.WebClient, but not all these keywords can be used in both places. The
+following table summarizes where the SOAP-related keywords can be used:
+
+     Keyword       Web Service  Web Client
+
+SoapAction         can use      cannot use
+
+SoapMessageName    can use      cannot use
+
+SoapBindingStyle   can use      can use
+
+SoapBodyUse        can use      can use
+
+SoapNameSpace      cannot use   can use
+
+SoapTypeNameSpace  cannot use   can use
+
+For an introduction to Web methods, see the WebMethod keyword. For more
+details, see the manual Using SOAP and Web Services with Caché.
+Default Value
+The default value for the SoapNameSpace keyword is an empty string, which means
+that the client method is in the namespace specified by the NAMESPACE parameter
+of the Web client.
+
+ #}}}
+SoapTypeNameSpace                       *soaptypenamespace* #{{{
+
+Applies only to Web clients. Specifies the XML namespace for the types used by
+this Web method.
+Synopsis
+
+Method GeneratedMethod() [ SoapNameSpace = "www.mytypes.org", WebMethod ]
+{
+   //code generated by WSDL reader
+}
+
+Value
+The value of this keyword is a namespace URI.
+Description
+This keyword specifies the XML namespace for the types used by this Web method.
+The SOAP-related keywords are meant for use in subclasses of %SOAP.WebService
+and %SOAP.WebClient, but not all these keywords can be used in both places. The
+following table summarizes where the SOAP-related keywords can be used:
+
+     Keyword       Web Service  Web Client
+
+SoapAction         can use      cannot use
+
+SoapMessageName    can use      cannot use
+
+SoapBindingStyle   can use      can use
+
+SoapBodyUse        can use      can use
+
+SoapNameSpace      cannot use   can use
+
+SoapTypeNameSpace  cannot use   can use
+
+For an introduction to Web methods, see the WebMethod keyword. For more
+details, see the manual Using SOAP and Web Services with Caché.
+Default Value
+The default value for the SoapTypeNameSpace keyword is an empty string, which
+means that the types for this method are in the namespace specified by the 
+TYPENAMESPACE parameter of the Web client.
+
+ #}}}
+SqlProc                                 *method_sqlname* #{{{
+
+Query Q1(KD As %String,P1 As %String,P2 As %String) As %SqlQuery
+{
+  SELECT SUM(SQLUser.TEST1_PROC1(1,2)) AS Sumd
+  FROM SQLUser.Test1
+}
+}
+
+
+ #}}}
+SqlProc                                 *method_sqlproc* #{{{
+
+Specifies that the method can be invoked as an SQL stored procedure. Only class
+methods can be called as SQL stored procedures.
+Synopsis
+
+ClassMethod MyMethod() As %Integer [SqlProc]
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that the method can be invoked as an SQL stored procedure. Only class
+methods can be called as SQL stored procedures.
+Default Value
+The default value for the SqlProc keyword is false.
+
+ #}}}
+WebMethod                               *method_webmethod* #{{{
+
+Specifies that this class method or instance method is a Web method and can be
+invoked via the SOAP protocol.
+Synopsis
+
+ClassMethod Square(val As %Integer) As %Integer [ WebMethod ]
+{
+        Quit val * val
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+This keyword specifies that this method is a Web method and can be invoked via
+the SOAP protocol. In order for the Web method to work correctly, the following
+must be true:
+
+  • The method must be defined within a class that extends %SOAP.WebService.
+  • The method must be marked with the WebMethod keyword.
+  • To use an object has an argument or a return value, you must ensure that
+    the object is XML-enabled. That is, the class definitions for the types
+    must extend %XML.Adaptor. See the manual Using XML with Caché.
+  • To use a data set as an argument or return value, you must ensure the data
+    set is of type %XML.DataSet, which is an XML-enabled subclass of the
+    standard %ResultSet.
+
+For more details on Web methods, refer to Using SOAP and Web Services with
+Caché.
+Note:
+This keyword is also automatically used within the definitions of Web client
+methods that you generate with the Caché WSDL reader. For more information,
+refer to Using SOAP and Web Services with Caché.
+Default Value
+The default value for the WebMethod keyword is false.
+
+ #}}}
+ZenMethod                               *zenmethod* #{{{
+
+Specifies that this method is a Zen method.
+Synopsis
+
+Method BtnClickMe() [ZenMethod]
+{
+   // TODO: implement
+}
+
+
+Value
+The value of this keyword is a boolean value.
+Description
+This keyword specifies that this method is a Zen method. Zen methods can be
+called from the client, but are executed on the server. These methods are
+written in ObjectScript or Basic, but they may include embedded JavaScript that
+calls back to the client. For more details on Zen methods, refer to Using Zen.
+Default Value
+The default value for the ZenMethod keyword is false.
+
+ #}}}
+ #}}}
+Parameter #{{{
+Abstract                                *parameter_abstract* #{{{
+
+Specifies that this is an abstract parameter.
+Synopsis
+
+Parameter MYPARM As STRING [ Abstract ];
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this is an abstract parameter. An abstract parameter simply
+behaves as if it were not defined. However, users can define an abstract
+parameter for documentation purposes and in order to enforce the signature of
+this parameter to be defined in the subclasses.
+Default Value
+The default value for the Abstract keyword is false.
+
+ #}}}
+Constraint                              *constraint* #{{{
+
+Specifies a user interface constraint for the parameter.
+Synopsis
+
+Parameter MYPARM As STRING [ Constraint = "constraint" ];
+
+Value
+The value of this keyword is a string.
+Description
+The constraint value is used by Caché Studio to provide input validation for
+the parameter. Its value is not used nor enforced by the class compiler.
+This keyword works in conjunction with the Flags keyword. For example, if Flags
+is set to ENUM, then Constraint should be a comma-separated list of possible
+parameter values.
+Default Value
+The default value for the Constraint keyword is an empty string.
+
+ #}}}
+Default                                 *default* #{{{
+
+Specifies a default value for the parameter.
+Synopsis
+
+Parameter MYPARM = default;
+
+Note:
+The Default keyword is visible only within the Inspector. In a parameter
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is a string.
+Description
+Specifies the value for the parameter. This value is inherited by subclasses
+unless it is overridden.
+Default Value
+The default value is an empty string.
+
+ #}}}
+Description                             *parameter_description* #{{{
+
+Specifies a description of the parameter.
+Synopsis
+
+/// This is a description of MYPARM
+Parameter MYPARM;
+
+Note:
+The Description keyword is visible only within the Inspector. In a parameter
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is multi-line text containing up to 32000 characters.
+Description
+Specifies a description of the class parameter. This description is displayed
+by the online class reference.
+Default Value
+The default description is an empty string.
+
+ #}}}
+Final                                   *parameter_final* #{{{
+
+Specifies that subclasses cannot override the definition of this parameter.
+Synopsis
+
+Parameter MYPARM [Final ] = 10;
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that subclasses cannot override the definition of this parameter.
+Default Value
+The default value for the Final keyword is false.
+
+ #}}}
+Flags                                   *flags* #{{{
+
+Modifies the user interface type (in Studio) for this parameter. This is useful
+for classes that you intend to subclass.
+Synopsis
+
+Parameter MYPARM [ Constraint = "X,Y,Z", Flags = ENUM ];
+
+Value
+This keyword can take one of the following values:
+
+  • ENUM  The parameter is one of the values specified by the Constraint
+    keyword (a comma-separated list). When you subclass the class that includes
+    this parameter, the Inspector will provide a drop-down list of these
+    values.
+  • LIST  The parameter value is a string consisting of a comma-separated list
+    of items.
+  • EDIT  Not used.
+  • EMPTY  Not used.
+  • SYS  Not used.
+
+The value can also be an empty string, in which case Studio will use a single
+value for the parameter.
+Description
+Modifies the user interface type (in Studio) for the parameter. Studio uses
+this type to provide input validation for the parameter within the Inspector.
+The class compiler ignores this keyword.
+Default Value
+The default value is an empty string.
+
+ #}}}
+Internal                                *parameter_internal* #{{{
+
+Specifies that this parameter should not be displayed in the class
+documentation.
+Synopsis
+
+Parameter MYPARM As  %String [ Internal];
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this parameter should not be displayed in the class
+documentation. This keyword is useful if you want users to see a class but not
+see all its members.
+Default Value
+The default value for the Internal keyword is false.
+
+ #}}}
+Name (Parameter)                        *parameter_name* #{{{
+
+The name of the parameter.
+Synopsis
+
+Parameter MYPARM;
+
+Note:
+The Name keyword is visible only within the Inspector. In a parameter
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is a name.
+Description
+The name of the class parameter. This name must be a valid class member name
+and must not conflict with any other class member names.
+Default Value
+There is no default name for a parameter.
+
+ #}}}
+Type                                    *parameter_type* #{{{
+
+Specifies a user interface type for the parameter.
+Synopsis
+
+Parameter MYPARM As STRING [ Constraint = "constraint" ];
+
+Note:
+The Type keyword is visible only within the Inspector. In a parameter
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+This value can be one of the following values:
+
+  • STRING  A string value.
+  • TEXT  A multi-line text value.
+  • BOOLEAN  A true (1) or false (0) value.
+  • INTEGER  An integer value.
+  • NUMBER  A valid number.
+  • NAME  A valid class member name (such as a method or property).
+  • COSIDENTIFIER  A valid Caché ObjectScript identifier.
+  • SQLIDENTIFIER  A valid SQL identifier.
+  • CLASSNAME  A valid class name.
+  • EXPRESSION  A valid Caché ObjectScript expression.
+  • CODE  Caché ObjectScript code.
+  • SQL  An SQL statement.
+
+The value can also be an empty string, in which case Studio will allow any
+string value for the parameter.
+Description
+Specifies a user interface type for the parameter. The type is used by Caché
+Studio to provide input validation for the parameter within the Class
+Inspector. It is not used by the class compiler.
+Default Value
+The default type for a parameter is an empty string, indicating this
+parameter’s value is treated as a STRING.
+
+ #}}}
+ #}}}
+ Projection #{{{
+Description                             *projection_description* #{{{
+
+Specifies a description of the projection.
+Synopsis
+
+/// This is a description.
+
+Note:
+The Description keyword is visible only within the Inspector. In a projection
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is multi-line text containing up to 16000 characters.
+Description
+Specifies a description of the projection. This description is displayed by the
+online class reference.
+A description may include HTML formatting tags. For more details, refer to
+Using HTML in Descriptions in the Class Definition Language reference.
+Default Value
+The default value for the Description keyword is an empty string.
+
+ #}}}
+Internal                                *projection_internal* #{{{
+
+Specifies that this projection should not be displayed in the class
+documentation.
+Synopsis
+
+Projection JavaProjection1 As %Projection.Java [Internal];
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this projection should not be displayed in the class
+documentation. This keyword is useful if you want users to see a class but not
+see all its members.
+Default Value
+The default value for the Internal keyword is false.
+
+ #}}}
+Name (Projection)                       *projection_name* #{{{
+
+The name of the projection.
+Synopsis
+
+/// Project this class to Java
+Projection JavaProjection1 As %Projection.Java;
+
+Note:
+The Name keyword is visible only within the Inspector. In a projection
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is a name.
+Description
+The name of the projection. This name must be a valid class member name and
+must not conflict with any other class member names.
+Default Value
+Not applicable. All projection definitions must have a name.
+
+ #}}}
+Type                                    *projection_type* #{{{
+
+Specifies the type of the projection.
+Synopsis
+
+Projection JavaProjection1 As %Projection.Java;
+
+Note:
+The Type keyword is visible only within the Inspector. In a projection
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+This keyword must be the name of a projection class, which is a subclass of 
+%Projection.AbstractProjection. For an introduction to the standard Caché
+projection classes, see the chapter  Adding Projections to a Class in 
+Using Caché Studio.
+Description
+Specifies the type of the projection.
+Default Value
+There is no default type.
+
+ #}}}
+ #}}}
+Property #{{{
+Calculated                              *calculated* #{{{
+
+Specifies that the property has no in-memory storage allocated for it when the
+object containing it is instantiated.
+Synopsis
+
+Property Age As %Integer [Calculated];
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that the property has no in-memory storage allocated for it when the
+object containing it is instantiated.
+Use this keyword when you are defining a property that does not need any
+in-memory storage; that is, a property on which you are providing a Get (and
+possibly a Set) method and where the value of the property is based on other
+properties. For example, you could define an Age property as calculated and
+provide an AgeGet method that determines a person’s current age based on the
+current time and the value of their DateOfBirth property.
+Default Value
+The default value for the Calculated keyword is false.
+
+ #}}}
+Cardinality                             *cardinality* #{{{
+
+Specifies the cardinality of a relationship property.
+Synopsis
+
+Relationship Chapters As Chapter [ Cardinality = many; inverse = Book];
+
+Value
+This keyword can take one of the following values:
+
+  • one
+  • many
+  • parent
+  • children
+
+The value of this keyword can also be an empty string.
+Description
+This keyword specifies the cardinality of a relationship property.
+The Cardinality keyword is required for relationship properties. It is ignored
+by non-relationship properties.
+For more information on relationships, refer to the Relationships chapter in
+the Using Caché Objects.
+Default Value
+The default value for the Cardinality keyword is an empty string.
+
+ #}}}
+ClientName                              *property_clientname* #{{{
+
+An alias used by client projections of this property.
+Synopsis
+
+Property PropA As %String [ ClientName=_MyProperty];
+
+Value
+The value of this keyword is a string.
+Description
+This keyword lets you define an alternate name for a property when it is
+projected to a client language. This is especially useful if the property name
+contains characters that are not allowed in the client language.
+Default Value
+The default is an empty string indicating that the property name is used as the
+client name.
+
+ #}}}
+Collection                              *collection* #{{{
+
+Specifies the collection type of a collection property.
+Synopsis
+
+Property A As %String [ collection = list];
+Property B As %String [ collection = array];
+
+Or
+
+Property A As List of %String;
+Property B As Array of %String;
+
+Value
+This keyword can take one of the following values:
+
+  • list
+  • array
+  • An empty string, indicating that this is a non-collection property
+
+Description
+This keyword specifies that a property is a collection property as well as what
+type of collection it is.
+Default Value
+The default value for the Collection keyword is an empty string.
+
+ #}}}
+Description                             *property_description* #{{{
+
+Specifies a description of the property.
+Synopsis
+
+/// This is a description
+Property Name As %String;
+
+Note:
+The Description keyword is visible only within the Inspector. In a property
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is multi-line text containing up to 32000 characters.
+Description
+Specifies a description of the property. This description is displayed by the
+online class reference.
+A description may include HTML formatting tags. For more details refer to Using
+HTML in Descriptions in the Class Definition Language reference.
+Default Value
+The default description of a property is an empty string.
+
+ #}}}
+ExternalSQLName                         *externalsqlname* #{{{
+
+Specifies the name of a property in a remote table available through the SQL
+Gateway.
+Synopsis
+
+Property MyProp As %String(EXTERNALSQLNAME = "MyPropExtSQLNm");
+
+Value
+The value of this keyword is a string specifying the name of the field in the
+remote table.
+Description
+The ExternalSQLName keyword is for use with a class which is a proxy for a
+table that exists in a remote database. For a property in such a class, the
+keyword specifies the name of the field in the proxy table. The name of the SQL
+field on the remote database may need to differ from property name on the Caché
+server for various reason, such as because the remote database field name is a
+reserved word in Caché.
+Such a class is known as a  linked table. To define a linked table, use the 
+Link Table Wizard, which is accessible in the System Management Portal from the
+SQL page [Home] > [SQL]. For details about this wizard, see 
+ The Link Table Wizard: Linking to a Table or View in Using Caché SQL.
+Note:
+ExternalSQLName specifies the name in a remote table. It differs from
+SQLFieldName, which specifies the projected field name on the Caché server. A
+class can have values for both ExternalSQLName and SQLFieldName, and these
+values can differ.
+Default Value
+There is a null default value for ExternalSQLName.
+
+ #}}}
+Final                                   *property_final* #{{{
+
+Specifies that subclasses cannot override the definition of this property.
+Synopsis
+
+Property Name As %String [Final];
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that subclasses cannot override the definition of this property.
+Default Value
+The default value for the Final keyword is false.
+
+ #}}}
+Identity                                *identity* #{{{
+
+For a persistent object, specifies that a property corresponds to an identity
+column in the corresponding SQL table.
+Synopsis
+
+Property Name As %String [Identity];
+
+Value
+The value of this keyword is a boolean value.
+Description
+For a persistent object, this keyword specifies that a property corresponds to
+an identity column in the corresponding SQL table (that is, a column that is
+marked with the SQL IDENTITY keyword). This keyword is useful particularly for
+tables that are created through DDL statements; see Using Caché SQL.
+Default Value
+The default value for the Identity keyword is false.
+
+ #}}}
+InitialExpression                       *initialexpression* #{{{
+
+Specifies an initial value for the property.
+Synopsis
+
+Property Prop1 As %String [ InitialExpression = "StringValue" ];
+
+Property Prop2 As %String [ InitialExpression = 100 ];
+
+Property Prop3 As %String [ InitialExpression = {$horolog} ];
+
+Value
+The value of this keyword is an expression.
+Description
+Specifies an initial value for the property, which can either be a constant or
+a Caché ObjectScript expression enclosed in curly braces. This value is
+assigned by the %New method of the class when a new instance is created. (If a
+property is transient, then its initial value is determined either by code
+invoked by %New when the instance is created or by code invoked by %OpenId when
+the instance is loaded from disk into memory.) If the value of the initial
+expression is a constant, its type must match that of the property. The
+expression can be arbitrarily complex, with the following limitations:
+
+  • The initial expression cannot refer to other properties. That is, an
+    expression such as {..otherpropertyname} is not valid.
+  • The initial expression cannot instantiate an object and cannot include an
+    object reference.
+  • The initial expression cannot invoke an instance method (only class
+    methods).
+  • The initial expression must be specified in Caché ObjectScript, even if the
+    class is written in another language, such as MVBasic.
+
+The following shows several examples that use Caché ObjectScript expressions:
+
+/// this one is initialized as today
+Property DateTime As %Date [ InitialExpression = {$zdate($horolog,3)} ];
+
+/// this one is initialized as an empty string
+Property MyString As %String [ InitialExpression = {$char(0)} ];
+
+/// this one is initialized with the value of a parameter
+Property MyProp As %String [ InitialExpression = {..#MYPARM} ];
+
+/// this one is initialized by a class method
+Property MyProp2 As %Numeric [ InitialExpression = {..Initialize()} ];
+
+Default Value
+The default value for the InitialExpression keyword is null.
+
+ #}}}
+Internal                                *property_internal* #{{{
+
+Specifies that this property should not be displayed in the class
+documentation.
+Synopsis
+
+Property PropA As %String [ Internal];
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this property should not be displayed in the class
+documentation. This keyword is useful if you want users to see a class but not
+see all its members.
+Default Value
+The default value for the Internal keyword is false.
+
+ #}}}
+Inverse                                 *inverse* #{{{
+
+Specifies the inverse side of a relationship.
+Synopsis
+
+Relationship Chapters As Chapter [ Cardinality = many; inverse = Book];
+
+Value
+The value of this keyword is a property name.
+Description
+This keyword specifies the name of the inverse side of a relationship. That is,
+the name of the corresponding relationship property in the related class. The
+inverse property must exist in the related class and have the correct
+Cardinality value.
+The Inverse keyword is required for relationship properties. It is ignored by
+non-relationship properties.
+For more information on relationships, refer to the Relationships chapter in 
+Using Caché Objects.
+Default Value
+The default value for the Inverse keyword is an empty string.
+
+ #}}}
+MultiDimensional                        *multidimensional* #{{{
+
+Specifies that a property has the characteristics of a multidimensional array.
+Synopsis
+
+Property Data [Multidimensional];
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that a property has the characteristics of a multidimensional array.
+Default Value
+The default value for the MultiDimensional keyword is false.
+
+ #}}}
+Name (Property)                         *property_name* #{{{
+
+The name of the property.
+Synopsis
+
+Property Prop1 As %String;
+
+Note:
+The Name keyword is visible only within the Inspector. In a property
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is a name.
+Description
+The name of the property. This name must be a valid class member name and must
+not conflict with any other class member names.
+Default Value
+There is no default name for a property.
+
+ #}}}
+NotInheritable                          *property_notinheritable* #{{{
+
+Specifies that this property cannot be inherited in subclasses.
+Synopsis
+
+Property MyProperty As %String [ NotInheritable ];
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this property cannot be inherited in subclasses.
+Important:
+While having a member not be inheritable by its subclasses can be very useful
+in some cases, the keyword should be used rarely and judiciously, as it breaks
+the inheritance contract. It should not be used for transient or calculated
+properties, especially in serializable classes (persistent, serial, and stream
+classes).
+Default Value
+The default value for the NotInheritable keyword is false.
+
+ #}}}
+Private                                 *property_private* #{{{
+
+Specifies that the property is private and can be used only by instance methods
+of this class (or its subclasses).
+Synopsis
+
+Class Salary As %Integer [Private];
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that the property is private. Private properties can only be used by
+instance methods of this class (or its subclasses).
+A private property is not displayed in the catalog information (accessed by
+using %Library.SQLCatalog) and is not returned by a SELECT * query. However,
+you can explicitly refer to and use a private property in an SQL query.
+Default Value
+The default value for the Private keyword is false.
+
+ #}}}
+ReadOnly                                *readonly* #{{{
+
+For a registered object, specifies that a property is read-only, which limits
+the number of ways its value can be set.
+Synopsis
+
+Property Name As %String [ReadOnly];
+
+Value
+The value of this keyword is a boolean value.
+Description
+For supported properties of a registered object, this keyword specifies that
+you cannot set the value of that property by using an object reference.
+Important:
+Do not use the ReadOnly keyword with collection properties.
+If you attempt to set the value of a read-only property using an object
+reference, such as:
+
+set oref.%Name = "newvalue"
+
+then there is a <CANNOT SET THIS PROPERTY> error at runtime.
+However, inside a method, you can change the value of a property by using the
+instance variable (i%PropertyName) syntax. For example:
+
+set i%Name = "newvalue"
+
+Note that when a property is defined as read-only, the field in the
+corresponding SQL table is also defined as read-only. You cannot explicitly
+insert or update a read-only field via SQL statements.
+Default Value
+The default value for the ReadOnly keyword is false.
+
+ #}}}
+Relationship                            *relationship* #{{{
+
+Specifies that a property is a relationship property.
+Synopsis
+
+Relationship Book As Book [ Cardinality = one, Inverse = Chapters];
+
+Value
+The value of this keyword is a boolean value.
+Description
+The Relationship keyword specifies that a property is a relationship property.
+Within Studio, relationship and non-relationship properties are shown as
+different class members (using the Relationship and Property statements,
+respectively). Within the class dictionary, both are stored as properties, with
+the Relationship keyword to distinguish them.
+For more information on relationships, refer to the Relationships chapter in 
+Using Caché Objects.
+Default Value
+The default value for the Relationship keyword is false.
+
+ #}}}
+Required                                *required* #{{{
+
+In the case of a persistent class, specifies that the property’s value must be
+given a value before it can be stored to disk.
+Synopsis
+
+Property Name As %String [Required];
+
+Value
+The value of this keyword is a boolean value.
+Description
+In the case of a persistent class, specifies that the property’s value must be
+given a value before it can be stored to disk.
+Default Value
+The default value for the Required keyword is false.
+
+ #}}}
+SqlColumnNumber                         *sqlcolumnnumber* #{{{
+
+Set the SQL column number for this property.
+Synopsis
+
+Property Name As %String [SqlColumnNumber = 4];
+
+Value
+The value of this keyword is an integer.
+Description
+This keyword lets you explicitly set the SQL column number for this property.
+This is provided to support legacy applications.
+Default Value
+The default value for the SqlColumnNumber keyword is an empty string.
+
+ #}}}
+SqlComputeCode                          *sqlcomputecode* #{{{
+
+Specifies code that computes a field (property) value.
+Synopsis
+
+Property FieldName As DataType [ SqlComputeCode = { Set {FieldName} = Expression }, SqlComputed ];
+
+where
+
+  • FieldName  The property being defined.
+  • DataType  The data type for the property.
+  • Expression  Caché ObjectScript code that specifies the value of the
+    property.
+
+Value
+The value of this keyword is the entire Caché ObjectScript statement that sets
+the value of the property equal to a value (typically a computed value).
+Description
+This keyword specifies Caché ObjectScript code that evaluates to a computed
+field value. A computed field expression can take the form:
+
+ Set {Field} = {Other}
+
+Within the code, all field names are enclosed within { }. The code should
+include a Set command that sets the value of the current field (enclosed within
+{}). The field being computed can also be designated using {*}. Blank spaces
+are permitted before or after the equal sign, though the entire Set statement
+must appear on a single line. The code specifying the value of the property may
+include embedded SQL, calls to class methods, etc. The code is called with a Do
+command.
+For further information on field names in Caché ObjectScript code, see CREATE
+TRIGGER in the Caché SQL Reference.
+Default Value
+The default value for the SqlComputeCode keyword is an empty string.
+
+ #}}}
+SqlComputed                             *sqlcomputed* #{{{
+
+Specifies that this is a computed field.
+Synopsis
+
+Property FieldName As DataType [ SqlComputeCode = { Set {FieldName} = Expression }, SqlComputed ];
+
+where
+
+  • FieldName  The property being defined.
+  • DataType  The data type for the property.
+  • Expression  Caché ObjectScript code that specifies the value of the
+    property.
+
+Value
+The value of this keyword is a boolean value. Including it as part of a
+property definition specifies its value as true.
+Description
+If true, then this property is an SQL computed field.
+If a property has the SqlComputed keyword, Caché uses the value of the code in
+SqlComputeCode to specify the property’s value. Specifically, a new class
+method, <property>Compute, is generated from SqlComputeCode. This method is
+called from the property’s <property>Get method. If the property also has
+SqlComputeOnChange keyword specified, then the <property>Compute method is
+called whenever one of the relevant properties is changed.
+This functionality is implemented in the <property>Get and <property>Set
+methods. If you override either of those methods, then property computations do
+not work unless there are provisions in the overridden method implementations
+to trigger computations.
+Default Value
+The default value for the SqlComputed keyword is false (not present as part of
+a property definition).
+
+ #}}}
+SqlComputeOnChange                      *sqlcomputeonchange* #{{{
+
+Specifies fields upon which this field calculation depends.
+Synopsis
+
+Property Test As %String [ SqlComputeOnChange = Name ];
+
+Value
+The value of this keyword contains a list of one or more comma-separated
+property names; it can also include the values %%INSERT or %%UPDATE.
+Description
+Specifies that which causes recalculation of this computed field within SQL.
+Recalculation can result from:
+
+  • The modification of any specified properties.
+  • The occurrence of a triggering event.
+
+If the keyword has a value of %%INSERT or %%UPDATE, then INSERT or UPDATE
+calls, respectively, specify event-triggered computation of the value of the
+field (property).
+
+  • With %%INSERT, a call to INSERT a row into the table invokes the code
+    specified in the field’s SQLComputeCode keyword to set the field’s value.
+    If the field has a default value or a value has been explicitly inserted
+    into the row, this value is ignored and the computation produces the value
+    stored for the field.
+  • With %%UPDATE, a call to UPDATE any row in the table invokes the code
+    specified in the field’s SQLComputeCode keyword to set the field’s value.
+    If the field value has been explicitly updated in the row, the value is
+    ignored and the computation produces the value stored for the field.
+
+Any event-triggered computation occurs immediately before validation and
+normalization (which themselves are followed by writing the value to the
+database).
+Note:
+Event-triggered computation of a field’s value may override any explicitly
+specified value for the property, depending on the code that computes the
+property’s value.
+Some examples of definitions of SqlComputeOnChange are:
+
+Property Test As %String [ SqlComputeOnChange = Prop1 ];
+Property Test As %String [ SqlComputeOnChange = Prop1,Prop2 ];
+Property Test As %String [ SqlComputeOnChange = Prop1,Prop2,%%UPDATE ];
+
+Default Value
+The default value for the SqlComputeOnChange keyword is an empty string.
+
+ #}}}
+SqlFieldName                            *sqlfieldname* #{{{
+
+In the case of a persistent class, specifies the column name used to identify
+the property in its SQL projection. By default, the SQL column name is the same
+as the property name.
+Synopsis
+
+Property Name As %String [SqlFieldName = _MyName];
+
+Value
+The value of this keyword is an SQL identifier.
+Description
+In the case of a persistent class, specifies the column name used to identify
+the property in its SQL projection. By default, the SQL column name is the same
+as the property name.
+Default Value
+The default value for the SqlFieldName keyword is an empty string.
+
+ #}}}
+SqlListDelimiter                        *sqllistdelimiter* #{{{
+
+Specifies the delimiter character used within SQL for lists.
+Synopsis
+
+Property Things As %String [Collection = list, SqlListDelimiter = ","];
+
+Value
+The value of this keyword is a delimiter character.
+Description
+This keyword is provided to support legacy applications, and Studio displays
+this keyword only in expert mode.
+Default Value
+The default value for the SqlListDelimiter keyword is an empty string.
+
+ #}}}
+SqlListType                             *sqllisttype* #{{{
+
+SqlListType controls how the values of a field are represented in memory in
+SQL, and how they stored on disk.
+Synopsis
+
+Property ListProperty As list Of %String [ SqlListType = SUBNODE ];
+
+Value
+This keyword can take one of the following values:
+
+  • LIST  the list is stored in $List() format in memory and on disk. This is
+    the default.
+  • DELIMITED  the list is stored as a delimited string in memory and on disk.
+    The delimiter is specified by SqlListDelimiter keyword.
+  • SUBNODE  the list is stored in subnodes on disk; that is, each list element
+    in a separate global node. The in-memory value of the field is $List format
+    if SqlListDelimiter is not specified. If SqlListDelimiter is specified, the
+    in-memory format is a delimited string.
+
+The value of this keyword can also be an empty string.
+Description
+SqlListType controls how the values of a field are represented in memory in
+SQL, and how they stored on disk.
+This keyword is provided to support legacy applications, and Studio displays
+this keyword only in expert mode.
+Default Value
+The default value for the SqlListType keyword is an empty string, which
+corresponds to the value list.
+
+ #}}}
+Transient                               *transient* #{{{
+
+In the case of a persistent class, specifies that the property is not stored in
+the database.
+Synopsis
+
+Property P1 As %Integer [Transient];
+
+Value
+The value of this keyword is a boolean value.
+Description
+In the case of a persistent class, specifies that the property is not stored in
+the database.
+Default Value
+The default value for the Transient keyword is false.
+
+ #}}}
+Type                                    *property_type* #{{{
+
+Specifies the name of the class associated with the property, which can be a
+data type class, a persistent class, or an embeddable (serial) class.
+Synopsis
+
+Property Prop As %Library.String;
+
+Note:
+The Type keyword is visible only within the Inspector. In a property
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is a class name.
+Description
+Specifies the name of the class associated with the property, which can be a
+data type class, a persistent class, or an embeddable (serial) class.
+Default Value
+The default value for the Type keyword is an empty string.
+
+ #}}}
+ #}}}
+Query #{{{
+ClientName                              *query_clientname* #{{{
+
+An alias used by client projections of this query.
+Synopsis
+
+Query Q1(formal_spec) As %SQLQuery [ ClientName = _MyQuery ]
+{
+
+Value
+The value of this keyword is a string.
+Description
+This keyword lets you define an alternate name for a query when it is projected
+to a client language. This is especially useful if the query name contains
+characters that are not allowed in the client language.
+Default Value
+The default is an empty string indicating that the query name is used as the
+client name.
+
+ #}}}
+Description                             *query_description* #{{{
+
+Specifies a description of the query.
+Synopsis
+
+/// This is a description
+
+Note:
+The Description keyword is visible only within the Inspector. In a query
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is multi-line text containing up to 32000 characters.
+Description
+Specifies a description of the query. This description is displayed by the
+online class reference.
+Default Value
+The default description of a query is an empty string.
+
+ #}}}
+Final                                   *query_final* #{{{
+
+Specifies that subclasses cannot override the definition of the query.
+Synopsis
+
+Query Q1() As %SQLQuery [ Final ]
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that subclasses cannot override the definition of the query.
+Default Value
+The default value for the Final keyword is false.
+
+ #}}}
+FormalSpec                              *query_formalspec* #{{{
+
+Specifies the list of arguments that are passed to the query.
+Synopsis
+
+Query Q1(formal_spec) As %SQLQuery [ Final ]
+{
+}
+
+Note:
+The FormalSpec keyword is visible only within the Inspector. In a query
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is an argument list.
+Description
+Specifies the list of arguments that are passed to the query via the Execute
+method of the %ResultSet class.
+Default Value
+The default value for the FormalSpec keyword is an empty string.
+
+ #}}}
+Internal                                *query_internal* #{{{
+
+Specifies that this query should not be displayed in the class documentation.
+Synopsis
+
+Query Q1(formal_spec) As %SQLQuery [ Internal ]
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this query should not be displayed in the class documentation.
+This keyword is useful if you want users to see a class but not see all its
+members.
+Default Value
+The default value for the Internal keyword is false.
+
+ #}}}
+Name                                    *query_name* #{{{
+
+Specifies the name of the query.
+Synopsis
+
+Query Roster() As %SQLQuery()
+{
+        SELECT Name
+        FROM Person
+}
+
+Note:
+The Name keyword is visible only within the Inspector. In a query definition,
+you specify a value for this keyword as shown in the preceding syntax.
+Value
+The value is a name.
+Description
+The name of the query. This name must be a valid class member name and must not
+conflict with any other class member names.
+Default Value
+There is no default name for a query.
+
+ #}}}
+NotInheritable                          *query_notinheritable* #{{{
+
+Specifies that this query cannot be inherited in subclasses.
+Synopsis
+
+Query MyQuery() As %SQLQuery() [NotInheritable]
+{
+   //query details
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this query cannot be inherited in subclasses.
+Important:
+While having a member not be inheritable by its subclasses can be very useful
+in some cases, the keyword should be used rarely and judiciously, as it breaks
+the inheritance contract.
+Default Value
+The default value for the NotInheritable keyword is false.
+
+ #}}}
+Private                                 *query_private* #{{{
+
+Specifies that the query is private.
+Synopsis
+
+Query Q1(formal_spec) As %SQLQuery [ Private ]
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that the query is private.
+Default Value
+The default value for the Private keyword is false.
+
+ #}}}
+SoapBindingStyle                        *query_soapbindingstyle* #{{{
+
+Specifies the binding style or SOAP invocation mechanism used by this query,
+when it is used as a Web method.
+Synopsis
+
+Query MyQuery() As %SQLQuery() [WebMethod, SoapBindingStyle = rpc]
+{
+   //query details
+}
+
+Value
+This keyword can take one of the following values:
+
+  • document  this Web method uses document-style invocation.
+  • rpc  this Web method uses rpc-style invocation.
+
+Description
+This keyword lets you specify the binding style used by a Web method, and it
+applies only to Web methods. This keyword overrides the class keyword of the
+same name.
+For objects of type %XML.DataSet, not all permutations of the SoapBindingStyle
+and SoapBodyUse keywords are permitted, as the following table summarizes:
+
+                                     SoapBodyUse=literal        SoapBodyUse=
+                                          (default)                encoded
+
+SoapBindingStyle=document         supported                   not supported
+(default)
+
+SoapBindingStyle=rpc              supported                   supported
+
+For an introduction to Web methods, see the WebMethod keyword. For more
+details, see the manual Using SOAP and Web Services with Caché.
+Default Value
+The default value for the SoapBindingStyle keyword is an empty string,
+indicating document-style invocation.
+
+ #}}}
+SoapBodyUse                             *query_soapbodyuse* #{{{
+
+Specifies the encoding used by the inputs and outputs of this query, when it is
+used as a Web method.
+Synopsis
+
+Query MyQuery() As %SQLQuery() [WebMethod, SoapBodyUse = encoded]
+{
+   //query details
+}
+
+Value
+This keyword can take one of the following values:
+
+  • encoded  this Web method uses SOAP-encoded data.
+  • literal  this Web method uses literal data.
+
+Description
+This keyword lets you specify the encoding for the inputs and outputs of a Web
+method, and it applies only to Web methods. This keyword overrides the class
+keyword of the same name.
+For objects of type %XML.DataSet, not all permutations of the SoapBindingStyle
+and SoapBodyUse keywords are permitted, as the following table summarizes:
+
+                                     SoapBodyUse=literal        SoapBodyUse=
+                                          (default)                encoded
+
+SoapBindingStyle=document         supported                   not supported
+(default)
+
+SoapBindingStyle=rpc              supported                   supported
+
+For an introduction to Web methods, see the WebMethod keyword. For more
+details, see the manual Using SOAP and Web Services with Caché.
+Default Value
+The default value for the SoapBodyUse keyword is an empty string, indicating
+literal-style encoding.
+
+ #}}}
+SoapNameSpace                           *query_soapnamespace* #{{{
+
+Specifies the namespace at the binding operation level in the WSDL.
+Synopsis
+
+Query Q1(formal_spec) As %SQLQuery [ SoapNameSpace = www.mynamespace.org, WebMethod ]
+{
+}
+
+Value
+The value of this keyword is a namespace URI.
+Description
+Specifies the namespace at the binding operation level in the WSDL.
+For an introduction to Web methods, see the WebMethod keyword. For more
+details, see the manual Using SOAP and Web Services with Caché.
+Default Value
+The default value for the SoapNameSpace keyword is an empty string.
+
+ #}}}
+SqlName                                 *query_sqlname* #{{{
+
+If this query is projected as an SQL stored procedure, then this name is used
+as the name of the stored procedure.
+Synopsis
+
+Query Q1(formal_spec) As %SQLQuery [ SqlName = _Q1 ]
+{
+}
+
+Value
+The value of this keyword is an SQL identifier.
+Description
+If this query is projected as an SQL stored procedure, then this name is used
+as the name of the stored procedure.
+Default Value
+The default value for the SqlName keyword is an empty string.
+
+ #}}}
+SqlProc                                 *query_sqlproc* #{{{
+
+Specifies that the query can be invoked as an SQL stored procedure.
+Synopsis
+
+Query Q1(formal_spec) As %SQLQuery [ SqlProc ]
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that the query can be invoked as an SQL stored procedure.
+Default Value
+The default value for the SqlProc keyword is false.
+
+ #}}}
+SqlQuery                                *sqlquery* #{{{
+
+Specifies an SQL statement for an SQL-based query.
+Synopsis
+
+Query Q1() As %SQLQuery
+  { SELECT Name FROM Sample.Person
+  }
+
+Note:
+The SqlQuery keyword is visible only within the Inspector. In a query
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is an SQL statement.
+Description
+For an SQL-based query, this value provides the text for the SQL query.
+Default Value
+The default value is an empty string.
+
+ #}}}
+SqlView                                 *sqlview* #{{{
+
+Projects this query as an SQL view.
+Synopsis
+
+Query Q1() As %SQLQuery [SqlView]
+  {
+  }
+
+Value
+The value of this keyword is a boolean value.
+Description
+Project this query as an SQL view.
+Default Value
+The default value for the SqlView keyword is false.
+
+ #}}}
+SqlViewName                             *sqlviewname* #{{{
+
+Provides an SQL alias for the view projected from this query.
+Synopsis
+
+Query Q1() As %SQLQuery [SqlView, SqlViewName = "_Q1"]
+  {
+  }
+
+Value
+The value of this keyword is an SQL identifier.
+Description
+Provides an SQL alias for the view projected from this query.
+Default Value
+The default value for the SqlViewName keyword is an empty string.
+
+ #}}}
+Type                                    *query_type* #{{{
+
+Specifies the query class used to provide the implementation of the query
+interface.
+Synopsis
+
+Query Q1(formal_spec) As QueryClass
+{
+}
+
+Note:
+The Type keyword is visible only within the Inspector. In a query definition,
+you specify a value for this keyword as shown in the preceding syntax.
+Value
+The value is a class name.
+Description
+Specifies the query class used to provide the implementation of the query
+interface.
+This is typically %SQLQuery for SQL-based queries and %Query for hand-written
+queries.
+Default Value
+The default type is an empty string.
+
+ #}}}
+WebMethod                               *query_webmethod* #{{{
+
+Specifies that this class query is a Web method and can be invoked via the SOAP
+protocol.
+Synopsis
+
+Query Q1(formal_spec) As QueryClass [ WebMethod ]
+{
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+This keyword specifies that this class query is a Web method and can be invoked
+via the SOAP protocol. In order for the Web method to work correctly, the class
+query must be defined within a class that extends %SOAP.WebService.
+For more details on Web methods, refer to Using SOAP and Web Services with
+Caché.
+Default Value
+The default value for the WebMethod keyword is false.
+
+ #}}}
+ #}}}
+Storage #{{{
+Attribute                               *attribute* #{{{
+
+Attribute
+Synopsis
+
+Value
+The value of this keyword is a string.
+Description
+Attribute
+Default Value
+The default value for the Attribute keyword is an empty string.
+
+ #}}}
+DataLocation                            *datalocation* #{{{
+
+Specifies where data is stored for this class.
+Synopsis
+
+<DataLocation>^Sample.PersonD</DataLocation>
+
+Value
+The value of element is a global name with optional leading subscripts.
+Description
+An expression that is the location where data is stored for this class.
+Normally this would be a global reference such as ^User.PersonD. The global
+reference can also include one or more leading subscripts. For example, 
+^User.Data("Person").
+It is also valid to use {%%PARENT} in the place of a global or local variable
+name in dependent classes (child classes within a parent-child relationship).
+For example, {%%PARENT}(ChildData). %%PARENT evaluates to the parent’s ID
+qualified data location (data location plus parent’s ID subscript).
+Default Value
+The default value for the <DataLocation> element is an empty string in which
+case the default data location, ^MyApp.MyClassD, is used (where MyApp.MyClass
+is the class name).
+
+ #}}}
+Name (Storage Data)                     *storagedata_name* #{{{
+
+Specifies the name of the storage data definition.
+Synopsis
+
+<StorageData name="name">
+
+Value
+The value of this attribute is a name.
+Description
+Specifies the name of the storage data definition. This must be a valid storage
+member name and must not conflict with any other storage data names.
+Default Value
+The name attribute has no default as it is a required value.
+
+ #}}}
+Structure                               *storagedata_structure* #{{{
+
+Structure
+Synopsis
+
+
+
+Value
+This keyword can take one of the following values:
+
+  • (empty string) data is stored as a multiple values within a node.
+  • node data is stored as a single value within a node.
+  • subnode data is stored within repeating subnodes.
+
+Description
+Structure
+Default Value
+The default value for the Structure keyword is listnode.
+
+ #}}}
+Subscript                               *subscript* #{{{
+
+Subscript
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Subscript
+Default Value
+The default value for the Subscript keyword is an empty string.
+
+ #}}}
+Name (StorageDataValue)                 *storagedatavalue_name* #{{{
+
+Specifies the name of the storage data value.
+Synopsis
+
+<StorageDataValue name="name">
+
+Value
+The value of this attribute is a name.
+Description
+Specifies the name of the storage data value. This must be a valid storage
+member name and must not conflict with any other storage data value names.
+Default Value
+The name attribute has no default as it is a required value.
+
+ #}}}
+Value                                   *value* #{{{
+
+Value
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Value
+Default Value
+The default value for the Value keyword is an empty string.
+
+ #}}}
+DefaultData                             *defaultdata* #{{{
+
+Specifies the default data storage definition.
+Synopsis
+
+<DefaultData>MyData</DefaultData>
+
+Value
+The value of this element is the name of a data storage node within the current
+storage definition.
+Description
+Specifies the name of the DATA definition that the class compiler data
+structure generator uses to place any previously unstored properties. A
+property is  unstored if it is storable but is not listed in any DATA
+definition.
+If you add a new, non-transient, property to a persistent class definition, and
+do not explicitly define a storage location for it, then the class compiler
+will automatically find a storage location for the property within the storage
+node specified by the <DefaultData> element.
+Default Value
+The default value for the <DefaultData> element is an empty string.
+
+ #}}}
+Description                             *storage_description* #{{{
+
+Specifies the description of the storage definition.
+Synopsis
+
+/// This is a description
+
+Note:
+The Description keyword is visible only within the Inspector. In a storage
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is multi-line text containing up to 32000 characters.
+Description
+Specifies a description of the storage definition. This description is
+displayed by the online class reference.
+Default Value
+The default description for a storage definition is an empty string.
+
+ #}}}
+Final                                   *storage_final* #{{{
+
+Specifies that the storage definition cannot be modified by subclasses.
+Synopsis
+
+<Final>1</Final>
+
+Value
+The value of this element is boolean value.
+Description
+Specifies that the storage definition cannot be modified by subclasses.
+Default Value
+The default value for the <Final> element is false.
+
+ #}}}
+IdExpression                            *idexpression* #{{{
+
+IdExpression
+Synopsis
+
+<IdExpression>expr</IdExpression>
+
+Value
+The value of this element is a string.
+Description
+IdExpression
+Default Value
+The default value for the <IdExpression> element is an empty string.
+
+ #}}}
+IdLocation                              *idlocation* #{{{
+
+Specifies location of the ID counter.
+Synopsis
+
+<IdLocation>^Sample.PersonD</IdLocation>
+
+Value
+The value of this element is a global name with optional leading subscripts.
+Description
+For non-IDKEY classes, this element lets you specify the global node that
+contains the counter used to provided object ID values (using the $Increment
+function).
+Default Value
+The default value for the <IdLocation> element is an empty string.
+
+ #}}}
+IndexLocation                           *indexlocation* #{{{
+
+Specifies the default storage location for indices.
+Synopsis
+
+<IndexLocation>^Sample.PersonI</IndexLocation>
+
+Value
+The value of this element is a global name with optional leading subscripts.
+Description
+This element lets you specify the global used for indices for this class. If
+not specified, the index location is ^MyApp.MyClassI (where MyApp.MyClass is
+the classn ame).
+Note that you can also specify the storage of each index individually.
+Default Value
+The default value for the <IndexLocation> element is an empty string.
+
+ #}}}
+Location                                *location* #{{{
+
+Location
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Location
+Default Value
+The default value for the Location keyword is an empty string.
+
+ #}}}
+Name (StorageIndex)                     *storageindex_name* #{{{
+
+Specifies the name of a storage index.
+Synopsis
+
+<StorageIndex name="name">
+
+Value
+The value of this attribute is a name.
+Description
+Specifies the name of a storage index.
+Default Value
+The default value for the name attribute is an empty string.
+
+ #}}}
+Name (Storage)                          *storage_name* #{{{
+
+Specifies the name of the storage definition.
+Synopsis
+
+<Storage name="Default">
+
+Value
+The value of this attribute is a name.
+Description
+The name of the storage definition. This name must be a valid class member name
+and must not conflict with any other class member names.
+Default Value
+This attribute has no default. It is required.
+
+ #}}}
+SqlChildSub                             *sqlchildsub* #{{{
+
+SqlChildSub
+Synopsis
+
+<SqlChildSub>sub</SqlChildSub>
+
+Value
+The value of this element is a string.
+Description
+SqlChildSub
+Default Value
+The default value for the <SqlChildSub> element is an empty string.
+
+ #}}}
+SqlIdExpression                         *sqlidexpression* #{{{
+
+SqlIdExpression
+Synopsis
+
+<SqlIdExpression>expr</SqlIdExpression>
+
+Value
+The value of this element is a string.
+Description
+SqlIdExpression
+Default Value
+The default value for the <SqlIdExpression> element is an empty string.
+
+ #}}}
+ConditionalWithHostVars                 *conditionalwithhostvars* #{{{
+
+ConditionalWithHostVars
+Synopsis
+
+
+
+Value
+The value of this keyword is boolean value.
+Description
+ConditionalWithHostVars
+Default Value
+The default value for the ConditionalWithHostVars keyword is false.
+
+ #}}}
+ConditionFields                         *conditionfields* #{{{
+
+ConditionFields
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+ConditionFields
+Default Value
+The default value for the ConditionFields keyword is an empty string.
+
+ #}}}
+Condition                               *storagesqlmap_condition* #{{{
+
+Condition
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Condition
+Default Value
+The default value for the Condition keyword is an empty string.
+
+ #}}}
+Delimiter                               *storagesqlmapdata_delimiter* #{{{
+
+Delimiter
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Delimiter
+Default Value
+The default value for the Delimiter keyword is an empty string.
+
+ #}}}
+Name (StorageSqlMapData)                *storagesqlmapdata_name* #{{{
+
+Name
+Synopsis
+
+<StorageSqlMapData name="name">
+
+Value
+The value of this keyword is a name.
+Description
+Name
+Default Value
+The default value for the Name keyword is an empty string.
+
+ #}}}
+Node                                    *node* #{{{
+
+Node
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Node
+Default Value
+The default value for the Node keyword is an empty string.
+
+ #}}}
+Piece                                   *piece* #{{{
+
+Piece
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Piece
+Default Value
+The default value for the Piece keyword is an empty string.
+
+ #}}}
+RetrievalCode                           *retrievalcode* #{{{
+
+RetrievalCode
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+RetrievalCode
+Default Value
+The default value for the RetrievalCode keyword is an empty string.
+
+ #}}}
+Global                                  *global* #{{{
+
+Global
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Global
+Default Value
+The default value for the Global keyword is an empty string.
+
+ #}}}
+Name (StorageSqlMap)                    *storagesqlmap_name* #{{{
+
+Name
+Synopsis
+
+<StorageSqlMap name="name">
+
+Value
+The value of this keyword is a name.
+Description
+Name
+Default Value
+The default value for the Name keyword is an empty string.
+
+ #}}}
+PopulationPct                           *populationpct* #{{{
+
+PopulationPct
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+PopulationPct
+Default Value
+The default value for the PopulationPct keyword is an empty string.
+
+ #}}}
+PopulationType                          *populationtype* #{{{
+
+PopulationType
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+PopulationType
+Default Value
+The default value for the PopulationType keyword is an empty string.
+
+ #}}}
+Expression                              *storagesqlmaprowidspec_expression* #{{{
+
+Expression
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Expression
+Default Value
+The default value for the Expression keyword is an empty string.
+
+ #}}}
+Field                                   *field* #{{{
+
+Field
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Field
+Default Value
+The default value for the Field keyword is an empty string.
+
+ #}}}
+Name (StorageSqlMapRowIdSpec)           *storagesqlmaprowidspec_name* #{{{
+
+Name
+Synopsis
+
+<StorageSqlMapRowIdSpec name="name">
+
+Value
+The value of this keyword is a name.
+Description
+Name
+Default Value
+The default value for the Name keyword is an empty string.
+
+ #}}}
+RowReference                            *rowreference* #{{{
+
+RowReference
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+RowReference
+Default Value
+The default value for the RowReference keyword is an empty string.
+
+ #}}}
+Structure                               *storagesqlmap_structure* #{{{
+
+Structure
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Structure
+Default Value
+The default value for the Structure keyword is an empty string.
+
+ #}}}
+AccessType                              *accesstype* #{{{
+
+AccessType
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+AccessType
+Default Value
+The default value for the AccessType keyword is an empty string.
+
+ #}}}
+Code                                    *storagesqlmapsubscriptaccessvar_code* #{{{
+
+Code
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Code
+Default Value
+The default value for the Code keyword is an empty string.
+
+ #}}}
+Name (StorageSqlMapSubscriptAccessVar)  *storagesqlmapsubscriptaccessvar_name* #{{{
+
+Name
+Synopsis
+
+<StorageSqlMapSubscriptAccessVar name="name">
+
+Value
+The value of this keyword is a name.
+Description
+The name of the StorageSqlmapSubscriptAccessVar definition. This name must be a
+valid storage member name and must not conflict with any other
+StorageSqlmapSubscriptAccessVar names.
+Default Value
+The Name keyword has no default as it is a required value.
+
+ #}}}
+Variable                                *variable* #{{{
+
+Variable
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Variable
+Default Value
+The default value for the Variable keyword is an empty string.
+
+ #}}}
+DataAccess                              *dataaccess* #{{{
+
+DataAccess
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+DataAccess
+Default Value
+The default value for the DataAccess keyword is an empty string.
+
+ #}}}
+Delimiter                               *storagesqlmapsubscript_delimiter* #{{{
+
+Delimiter
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Delimiter
+Default Value
+The default value for the Delimiter keyword is an empty string.
+
+ #}}}
+Expression                              *storagesqlmapsubscript_expression* #{{{
+
+Expression
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Expression
+Default Value
+The default value for the Expression keyword is an empty string.
+
+ #}}}
+Expression                              *storagesqlmapsubscriptinvalidcondition_expression* #{{{
+
+Expression
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+Expression
+Default Value
+The default value for the Expression keyword is an empty string.
+
+ #}}}
+Name (StorageSqlMapSubscriptInvalidCondi*storagesqlmapsubscriptinvalidcondition_name* #{{{
+
+Name
+Synopsis
+
+<StorageSqlMapSubscriptInvalidCondition name="name">
+
+Value
+The value of this keyword is a name.
+Description
+The name of the StorageSqlmapSubscriptInvalidCondition definition. This name
+must be a valid storage member name and must not conflict with any other
+StorageSqlmapSubscriptInvalidCondition names.
+Default Value
+The Name keyword has no default as it is a required value.
+
+ #}}}
+LoopInitValue                           *loopinitvalue* #{{{
+
+LoopInitValue
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+LoopInitValue
+Default Value
+The default value for the LoopInitValue keyword is an empty string.
+
+ #}}}
+Name (StorageSqlMapSubscript)           *storagesqlmapsubscript_name* #{{{
+
+Name
+Synopsis
+
+<StorageSqlMapSubscript name="name">
+
+Value
+The value of this keyword is a name.
+Description
+The name of the StorageSqlmapSubscript definition. This name must be a valid
+storage member name and must not conflict with any other StorageSqlmapSubscript
+member names.
+Default Value
+The Name keyword has no default as it is a required value.
+
+ #}}}
+NextCode                                *nextcode* #{{{
+
+NextCode
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+NextCode
+Default Value
+The default value for the NextCode keyword is an empty string.
+
+ #}}}
+NullMarker                              *nullmarker* #{{{
+
+NullMarker
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+NullMarker
+Default Value
+The default value for the NullMarker keyword is an empty string.
+
+ #}}}
+StartValue                              *startvalue* #{{{
+
+StartValue
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+StartValue
+Default Value
+The default value for the StartValue keyword is an empty string.
+
+ #}}}
+StopExpression                          *stopexpression* #{{{
+
+StopExpression
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+StopExpression
+Default Value
+The default value for the StopExpression keyword is an empty string.
+
+ #}}}
+StopValue                               *stopvalue* #{{{
+
+StopValue
+Synopsis
+
+
+
+Value
+The value of this keyword is a string.
+Description
+StopValue
+Default Value
+The default value for the StopValue keyword is an empty string.
+
+ #}}}
+Type                                    *storagesqlmap_type* #{{{
+
+Type
+Synopsis
+
+
+
+Value
+This keyword can take one of the following values:
+
+  • data this is a data map.
+  • index this is an index map.
+
+The value of this keyword can also be an empty string.
+Description
+Type
+Default Value
+The default value for the Type keyword is an empty string.
+
+ #}}}
+SqlRowIdName                            *storage_sqlrowidname* #{{{
+
+Specifies the name used for the row ID within SQL.
+Synopsis
+
+<SqlRowIdName>IdName</SqlRowIdName>
+
+Value
+The value of this element is an SQL identifier.
+Description
+This element lets you directly specify the name of the row (object) ID column
+projected to SQL.
+Default Value
+The default value for the <SqlRowIdName> element is an empty string.
+
+ #}}}
+SqlRowIdProperty                        *sqlrowidproperty* #{{{
+
+Specifies the SQL RowId property.
+Synopsis
+
+<SqlRowIdProperty>prop</SqlRowIdProperty>
+
+Value
+The value of this element is an SQL identifier.
+Description
+This element is only used by classes that have been migrated from earlier
+InterSystems products.
+Default Value
+The default value for the <SqlRowIdProperty> element is an empty string.
+
+ #}}}
+SqlTableNumber                          *sqltablenumber* #{{{
+
+Specifies the internal SQL table number.
+Synopsis
+
+<SqlTableNumber>123</SqlTableNumber>
+
+Value
+The value of this element is a table number.
+Description
+This element is only used by classes that have been migrated from earlier
+InterSystems products.
+Default Value
+The default value for the <SqlTableNumber> element is an empty string.
+
+ #}}}
+State                                   *state* #{{{
+
+Specifies the data definition used for a serial object.
+Synopsis
+
+<State>state</State>
+
+Value
+The value of this element is the name of a data definition within this storage
+definition.
+Description
+For a serial (embedded) class, this keyword indicates which data definition is
+used to define the serialized state of the object (how the object’s properties
+are arranged when they are serialized). This is also the default DATA
+definition to which the default structure generator will add unstored
+properties.
+Default Value
+The default value for the <State> element is an empty string.
+
+ #}}}
+StreamLocation                          *streamlocation* #{{{
+
+Specifies the default storage location for stream properties.
+Synopsis
+
+<StreamLocation>^Sample.PersonS</StreamLocation>
+
+Value
+The value of this element is a global name with optional leading subscripts.
+Description
+This element lets you specify the default global used to store any stream
+properties within this class. If not specified, the index location is 
+^MyApp.MyClassI (where MyApp.MyClass is the class name).
+Note that you can also specify the storage of each index individually.
+Default Value
+The default value for the <StreamLocation> element is an empty string.
+
+ #}}}
+Type                                    *storage_type* #{{{
+
+Storage class used to provide persistence.
+Synopsis
+
+<Type>%CacheStorage</Type>
+
+Value
+The value of this element is a class name.
+Description
+This element specifies the storage class that provides persistence for this
+class.
+The %Library.CacheStorage class is the default storage class and provides the
+default storage structure.
+The %Library.CacheSQLStorage class is used for mapping classes to legacy data
+structures.
+For serial (embedded) classes, this must be set to %Library.CacheSerialState
+(which is set automatically by the New Class Wizard).
+Default Value
+The default value for the <Type> element is %Library.CacheStorage.
+
+ #}}}
+ #}}}
+Trigger #{{{
+Code                                    *trigger_code* #{{{
+
+Specifies the code that is executed when the trigger is fired.
+Synopsis
+
+Trigger MyTrigger [ Event = INSERT, Time = AFTER ]
+{
+        // ...Code
+}
+
+Note:
+The Code keyword is visible only within the Inspector. In a trigger definition,
+you specify a value for this keyword as shown in the preceding syntax.
+Value
+The value is SQL code.
+Description
+The code that is executed when the trigger is fired.
+Default Value
+The default code is an empty string.
+
+ #}}}
+Description                             *trigger_description* #{{{
+
+Specifies a description of the SQL trigger.
+Synopsis
+
+/// This is a description
+
+Note:
+The Description keyword is visible only within the Inspector. In a trigger
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value is multi-line text containing up to 32000 characters.
+Description
+Specifies a description of the SQL trigger. This description is displayed by
+the online class reference.
+Default Value
+The default description is an empty string.
+
+ #}}}
+Event                                   *event* #{{{
+
+Specifies the SQL event that will fire the trigger.
+Synopsis
+
+Trigger MyTrigger [ Event = INSERT, Time = AFTER ]
+{
+        // ...Code
+}
+
+Value
+This keyword can take one of the following values:
+
+  • DELETE  this trigger is fired during an SQL Delete operation.
+  • INSERT  this trigger is fired during an SQL Insert operation.
+  • UPDATE  this trigger is fired during an SQL Update operation.
+  • INSERT/UPDATE  this trigger is fired during an SQL Insert operation or an
+    SQL Update operation.
+  • INSERT/DELETE  this trigger is fired during an SQL Insert operation or an
+    SQL DELETE operation.
+  • UPDATE/DELETE  this trigger is fired during an SQL Update operation or an
+    SQL DELETE operation.
+  • INSERT/UPDATE/DELETE  this trigger is fired during an SQL Insert operation,
+    an SQL Update operation, or an SQL Delete operation.
+
+Description
+Specifies the SQL event that will fire the trigger.
+Default Value
+The default value for the Event keyword is an empty string.
+
+ #}}}
+Final                                   *trigger_final* #{{{
+
+Specifies that subclasses cannot override the definition of the SQL trigger.
+Synopsis
+
+Trigger MyTrigger [ Event = INSERT, Final, Time = AFTER ]
+{
+        // ...Code
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that subclasses cannot override the definition of the SQL trigger.
+Default Value
+The default value for the Final keyword is false.
+
+ #}}}
+Foreach                                 *foreach* #{{{
+
+Controls whether the trigger is row level or statement level.
+Synopsis
+
+Trigger MyTrigger [ Event = INSERT, Foreach = statement, Language = tsql ]
+{
+        // ...Code
+}
+
+Value
+This keyword can take one of the following values:
+
+  • row  this trigger is fired by each row affected by the triggering
+    statement. This is the default.
+  • statement  this trigger is fired once for the whole the statement. Note
+    that statement-level triggers are supported only for TSQL; that is, the
+    setting of the Language keyword must be tsql.
+
+Description
+Controls whether the trigger is row level or statement level.
+Default Value
+The default value for the Foreach keyword is an empty string, meaning that the
+trigger is a row-level trigger.
+
+ #}}}
+Internal                                *trigger_internal* #{{{
+
+Specifies that this trigger should not be displayed in the class documentation.
+Synopsis
+
+Trigger MyTrigger [ Event = INSERT, Internal ]
+{
+        // ...Code
+}
+
+Value
+The value of this keyword is a boolean value.
+Description
+Specifies that this trigger should not be displayed in the class documentation.
+This keyword is useful if you want users to see a class but not see all its
+members.
+Default Value
+The default value for the Internal keyword is false.
+
+ #}}}
+Language                                *trigger_language* #{{{
+
+Specifies the language in which the trigger is written.
+Synopsis
+
+Trigger NewTrigger1 [ Event = INSERT, Language = cache ]
+{
+        // ...Code
+}
+
+Value
+This keyword can take one of the following values:
+
+  • cache  this trigger is written in Caché ObjectScript.
+  • tsql  this trigger is written in TSQL. If you use this value, the trigger
+    must be a statement-level trigger; that is, the setting of the Foreach
+    keyword must be statement.
+
+Description
+Specifies the language in which the trigger is written. This affects the syntax
+checking of the trigger within Studio.
+Default Value
+The default value for the Language keyword is an empty string, which means that
+the language is Caché ObjectScript.
+
+ #}}}
+Name (Trigger)                          *trigger_name* #{{{
+
+The name of the SQL trigger.
+Synopsis
+
+Trigger OnInsert [ Event = INSERT] {
+}
+
+Note:
+The Name keyword is visible only within the Inspector. In a trigger definition,
+you specify a value for this keyword as shown in the preceding syntax.
+Value
+The value is a name.
+Description
+The name of the SQL trigger. This name must be a valid class member name and
+must not conflict with any other class member names.
+Default Value
+There is no default name for a trigger.
+
+ #}}}
+NewTable                                *newtable* #{{{
+
+Specifies the name of the transition table that stores the new values of the
+row or statement affected by the event.
+Synopsis
+
+Trigger NewTrigger1 [ Event = INSERT, OldTable = oldname, NewTable = newname ]
+{
+        // ...Code
+}
+
+Value
+This keyword must be a string.
+Description
+Each trigger has access to the old and new values of the row or statement
+affected by the event, by means of transition tables (specified by the OldTable
+and NewTable keywords).
+Default Value
+The default value for the NewTable keyword is null.
+
+ #}}}
+OldTable                                *oldtable* #{{{
+
+Specifies the name of the transition table that stores the old values of the
+row or statement affected by the event.
+Synopsis
+
+Trigger NewTrigger1 [ Event = INSERT, OldTable = oldname, NewTable = newname ]
+{
+        // ...Code
+}
+
+Value
+This keyword must be a string.
+Description
+Each trigger has access to the old and new values of the row or statement
+affected by the event, by means of transition tables (specified by the OldTable
+and NewTable keywords).
+Default Value
+The default value for the OldTable keyword is an empty string.
+
+ #}}}
+Order                                   *order* #{{{
+
+In the case of multiple triggers for the same EVENT and TIME, specifies the
+order in which the triggers should be fired.
+Synopsis
+
+Trigger MyTrigger [ Event = INSERT, Order = 1, Time = AFTER ]
+{
+        // ...Code
+}
+
+Value
+The value of this keyword is an integer.
+Description
+In the case of multiple triggers for the same EVENT and TIME, specifies the
+order in which the triggers should be fired.
+Default Value
+The default value for the Order keyword is 0.
+
+ #}}}
+SqlName                                 *trigger_sqlname* #{{{
+
+If this trigger is projected to SQL, then this name is used as the SQL trigger.
+Synopsis
+
+Trigger MyTrigger [ Event = INSERT, SqlName = _Trigger, Time = AFTER ]
+{
+        // ...Code
+}
+
+Value
+The value of this keyword is an SQL identifier.
+Description
+If this trigger is projected to SQL, then this name is used as the SQL trigger.
+Default Value
+The default value for the SqlName keyword is an empty string.
+
+ #}}}
+Time                                    *time* #{{{
+
+Specifies whether the trigger is fired before or after the event.
+Synopsis
+
+Trigger MyTrigger [ Event = INSERT, Order = 1, Time = AFTER ]
+{
+        // ...Code
+}
+
+
+Value
+This keyword can take one of the following values:
+
+  • AFTER  this trigger is fired after an event.
+  • BEFORE  this trigger is fired before an event.
+
+Description
+Specifies whether the trigger is fired before or after the event.
+Default Value
+The default value for the Time keyword is BEFORE.
+
+ #}}}
+UpdateColumnList                        *updatecolumnlist* #{{{
+
+Specifies one or more columns whose modification causes the trigger to be
+pulled by SQL.
+Synopsis
+
+Trigger NewTrigger1 [ Event = INSERT, UpdateColumnList = colname ]
+{
+        // ...Code
+}
+
+Value
+This keyword is null or a comma-delimited list of one or more column names.
+Description
+This keyword specifies one or more columns whose modification causes the
+trigger to be pulled by SQL.
+Default Value
+The default value for the UpdateColumnList keyword is null.
+
+ #}}}
+ #}}}
+XData #{{{
+Data                                    *xdata_data* #{{{
+
+Specifies the actual contents of the XData block.
+Synopsis
+
+/// Description of XData block
+XData NewXData
+{
+<MyXML>
+   <Person userid="gg4901">
+      <Name>Benson, Bertie</Name>
+      <DOB>1989-02-16</DOB>
+   </Person>
+</MyXML>
+}
+
+Note:
+The Data keyword is visible only within the Inspector. In a class definition,
+you specify a value for this keyword as shown in the preceding syntax.
+Value
+The value of this keyword is a string that contains well-formed XML.
+Description
+Specifies the actual contents of the XData block.
+Default Value
+The default value for the Data keyword is an empty string.
+
+ #}}}
+Description                             *xdata_description* #{{{
+
+Specifies a description of the XData block.
+Synopsis
+
+/// Description of XData block
+XData NewXData
+{
+}
+
+Note:
+The Description keyword is visible only within the Inspector. In a class
+definition, you specify a value for this keyword as shown in the preceding
+syntax.
+Value
+The value of this keyword is multi-line text containing up to 16000 characters.
+Description
+Specifies a description of the XData block.
+A description may include HTML formatting tags. For more details, refer to
+Using HTML in Descriptions in the Class Definition Language reference.
+Default Value
+The default value for the Description keyword is an empty string.
+
+ #}}}
+Name                                    *xdata_name* #{{{
+
+The name of the XData block.
+Synopsis
+
+/// Description of XData block
+XData MyXDataBlockName
+{
+}
+
+Note:
+The Name keyword is visible only within the Inspector. In a class definition,
+you specify a value for this keyword as shown in the preceding syntax.
+Value
+The value of this keyword is a valid identifier. This name must be a valid
+class member name and must not conflict with any other class member names.
+Description
+The name of the XData block.
+Default Value
+Not applicable. All XData blocks must have names.
+
+ #}}}
+SchemaSpec                              *schemaspec* #{{{
+
+Specifies the XML schema against which this XData block can be validated.
+Synopsis
+
+XData MyData [ SchemaSpec = "http:///www.person.com http://www.MyCompany.com/schemas/person.xsd" ]
+{
+}
+
+Value
+The value of this keyword is the URI of the namespace to which the schema
+belongs, followed by a space, followed by the URL of the schema document
+itself.
+Description
+Specifies the XML schema against which this XData block can be validated.
+Default Value
+The default value for the SchemaSpec keyword is null.
+
+ #}}}
+XMLNamespace                            *xmlnamespace* #{{{
+
+Specifies the XML namespace to which an XData block belongs.
+Synopsis
+
+XData MyData [ XMLNamespace = "http://www.mynamespace.org" ]
+{
+}
+
+Value
+The value of this keyword is a URI that specifies an XML namespace.
+Description
+Specifies the XML namespace to which an XData block belongs.
+Default Value
+The default value for the XMLNamespace keyword is null.
+
+ #}}}
+ #}}}
+
+ Clearing up ambiguous entries#{{{
+  *abstract*
+|class_abstract|
+|method_abstract|
+|parameter_abstract|
+  *clientname*
+|class_clientname|
+|method_clientname|
+|property_clientname|
+|query_clientname|
+  *code*
+|storagesqlmapsubscriptaccessvar_code|
+|trigger_code|
+  *condition*
+|index_condition|
+|storagesqlmap_condition|
+  *data*
+|index_data|
+|xdata_data|
+  *delimiter*
+|storagesqlmapdata_delimiter|
+|storagesqlmapsubscript_delimiter|
+  *description*
+|class_description|
+|foreignkey_description|
+|index_description|
+|method_description|
+|parameter_description|
+|projection_description|
+|property_description|
+|query_description|
+|storage_description|
+|trigger_description|
+|xdata_description|
+  *expression*
+|storagesqlmaprowidspec_expression|
+|storagesqlmapsubscript_expression|
+|storagesqlmapsubscriptinvalidcondition_expression|
+  *final*
+|class_final|
+|index_final|
+|method_final|
+|parameter_final|
+|property_final|
+|query_final|
+|storage_final|
+|trigger_final|
+  *formalspec*
+|method_formalspec|
+|query_formalspec|
+  *internal*
+|foreignkey_internal|
+|index_internal|
+|method_internal|
+|parameter_internal|
+|projection_internal|
+|property_internal|
+|query_internal|
+|trigger_internal|
+  *keywords*
+|class_keywords|
+|foreignkey_keywords|
+|index_keywords|
+|method_keywords|
+|parameter_keywords|
+|projection_keywords|
+|property_keywords|
+|query_keywords|
+|storagedata_keywords|
+|storagedatavalue_keywords|
+|storageindex_keywords|
+|storage_keywords|
+|storagesqlmapdata_keywords|
+|storagesqlmap_keywords|
+|storagesqlmaprowidspec_keywords|
+|storagesqlmapsubscriptaccessvar_keywords|
+|storagesqlmapsubscriptinvalidcondition_keywords|
+|storagesqlmapsubscript_keywords|
+|trigger_keywords|
+|xdata_keywords|
+  *language*
+|class_language|
+|method_language|
+|trigger_language|
+  *name*
+|class_name|
+|foreignkey_name|
+|index_name|
+|method_name|
+|parameter_name|
+|projection_name|
+|property_name|
+|query_name|
+|storagedata_name|
+|storagedatavalue_name|
+|storageindex_name|
+|storage_name|
+|storagesqlmapdata_name|
+|storagesqlmap_name|
+|storagesqlmaprowidspec_name|
+|storagesqlmapsubscriptaccessvar_name|
+|storagesqlmapsubscriptinvalidcondition_name|
+|storagesqlmapsubscript_name|
+|trigger_name|
+|xdata_name|
+  *notinheritable*
+|method_notinheritable|
+|property_notinheritable|
+|query_notinheritable|
+  *private*
+|method_private|
+|property_private|
+|query_private|
+  *procedureblock*
+|class_procedureblock|
+|method_procedureblock|
+  *properties*
+|foreignkey_properties|
+|index_properties|
+  *serveronly*
+|class_serveronly|
+|method_serveronly|
+  *soapbindingstyle*
+|class_soapbindingstyle|
+|method_soapbindingstyle|
+|query_soapbindingstyle|
+  *soapbodyuse*
+|class_soapbodyuse|
+|method_soapbodyuse|
+|query_soapbodyuse|
+  *soapnamespace*
+|method_soapnamespace|
+|query_soapnamespace|
+  *sqlname*
+|foreignkey_sqlname|
+|index_sqlname|
+|method_sqlname|
+|query_sqlname|
+|trigger_sqlname|
+  *sqlproc*
+|method_sqlproc|
+|query_sqlproc|
+  *sqlrowidname*
+|class_sqlrowidname|
+|storage_sqlrowidname|
+  *structure*
+|storagedata_structure|
+|storagesqlmap_structure|
+  *type*
+|index_type|
+|parameter_type|
+|projection_type|
+|property_type|
+|query_type|
+|storagesqlmap_type|
+|storage_type|
+  *webmethod*
+|method_webmethod|
+|query_webmethod|
+ #}}}
+==============================================================================
+  vim:tw=78:fo=tcq2:ts=8:ft=help:norl:fdm=marker:fmr={{{,}}}:cms=\ #%s  

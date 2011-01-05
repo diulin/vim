@@ -1,0 +1,72 @@
+" Gundo for autocmd_ft.vim (8)
+" j/k  - move between undo states
+" p    - preview diff of selected and current states
+" <cr> - revert to selected state
+
+ @  [33] 34 seconds ago
+ |
+ o  [32] 34 seconds ago
+ |
+ o  [31] 37 seconds ago
+ |
+ o  [30] 39 seconds ago
+ |
+ o  [29] 39 seconds ago
+ |
+ o  [28] 41 seconds ago
+ |
+ o  [27] 48 seconds ago
+ |
+ o  [26] 50 seconds ago
+ |
+ o  [25] 60 seconds ago
+ |
+ o  [24] 79 seconds ago
+ |
+ o  [23] 80 seconds ago
+ |
+ | o  [22] 84 seconds ago
+ |/
+ o  [21] 111 seconds ago
+ |
+ o  [20] 112 seconds ago
+ |
+ o  [19] 112 seconds ago
+ |
+ o  [18] 114 seconds ago
+ |
+ o  [17] 2 minutes ago
+ |
+ o  [16] 2 minutes ago
+ |
+ o  [15] 2 minutes ago
+ |
+ o  [14] 2 minutes ago
+ |
+ o  [13] 3 minutes ago
+ |
+ o  [12] 3 minutes ago
+ |
+ o  [11] 4 minutes ago
+ |
+ o  [10] 4 minutes ago
+ |
+ o  [9] 4 minutes ago
+ |
+ o  [8] 4 minutes ago
+ |
+ o  [7] 4 minutes ago
+ |
+ o  [6] 4 minutes ago
+ |
+ o  [5] 4 minutes ago
+ |
+ o  [4] 4 minutes ago
+ |
+ o  [3] 4 minutes ago
+ |
+ o  [2] 7 minutes ago
+ |
+ o  [1] 7 minutes ago
+ |
+ o  [0] Original

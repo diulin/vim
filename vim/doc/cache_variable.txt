@@ -1,0 +1,3531 @@
+*cache_variable.txt*	For Vim version 7.2.  Last change: 2009 Nov 11
+
+
+                	  VIM REFERENCE MANUAL 
+                               adopted by 
+                     Andriy Diulin <diulin at gmail dot com>
+		          Caché manual pages
+			      Variables 
+
+For instructions on installing this file, type
+	:help add-local-help
+|add-local-help| inside Vim.
+
+Abbreviations #{{{
+*$EC*           |$ECODE|           special variable
+*$ES*           |$ESTACK|          special variable
+*$ET*           |$ETRAP|           special variable
+*^$G*           |^$GLOBAL|         structured system variable
+*$H*            |$HOROLOG|         special variable
+*^$J*           |^$JOB|            structured system variable
+*$K*            |$KEY|             special variable
+*^$L*           |^$LOCK|           structured system variable
+*^$R*           |^$ROUTINE|        structured system variable
+*$TL*           |$TLEVEL|          special variable
+*$ZE*           |$ZERROR|          special variable
+*$ZI*           |$ZIO|             special variable
+*$ZJ*           |$ZJOB|            special variable
+*$ZN*           |$ZNAME|           special variable
+*$ZO*           |$ZORDER|          special variable
+*$ZR*           |$ZREFERENCE|      special variable
+*$ZS*           |$ZSTORAGE|        special variable
+*$ZTS*          |$ZTIMESTAMP|      special variable
+*$ZTZ*          |$ZTIMEZONE|       special variable
+*$ZV*           |$ZVERSION|        special variable
+ #}}}
+
+*$DEVICE*  #{{{
+
+Contains user-specified device status information.
+Synopsis
+
+$DEVICE
+
+Description
+$DEVICE can be used to record device status information. You can use the 
+$ZUTIL(96,5) function to place a value in $DEVICE. By convention, this value
+should describe the outcome of an I/O operation as a 3-piece string, in the
+form:
+standard_error,user_error,explanatory_text
+You can also set $DEVICE using the SET command.
+By default, $DEVICE contains the null string.
+See Also
+
+  • $ZUTIL(96,5) Set $DEVICE Special Variable function
+
+
+ #}}}
+*$ECODE*  #{{{
+
+Contains the current error code string.
+Synopsis
+
+$ECODE
+$EC
+
+Description
+When an error occurs, Caché sets the $ECODE special variable to a
+comma-surrounded string containing the error code corresponding to the error.
+For example, when a reference is made to an undefined global variable, Caché
+sets the $ECODE special variable to the following string:
+,M7,
+$ECODE can contain ANSI-standard M error codes, with the form M#, where # is an
+integer. For example, M6 and M7 are  undefined local variable and  undefined
+global variable, respectively. (M7 is issued for both globals and
+process-private globals.) For a complete list, see ANSI-Standard M Error
+Messages in the Caché Error Reference.
+$ECODE can also contain error codes that are the same as Caché General System
+error codes (the error codes returned at the terminal prompt and to the $ZERROR
+special variable). However, $ECODE appends a  Z to these error codes, and
+removes the angle brackets. Thus the $ECODE error ZSYNTAX is a <SYNTAX> error,
+ZILLEGAL VALUE is an <ILLEGAL VALUE> error, and ZFUNCTION is a <FUNCTION>
+error. $ECODE does not retain any additional error info for those error codes
+that provide it; thus ZPROTECT is a <PROTECT> error; the additional info
+component is kept in $ZERROR, but not in $ECODE. For more information about
+Caché error codes, see $ZERROR; for a complete list, see General System Error
+Messages in the Caché Error Reference.
+If an error occurs when $ECODE already contains an error code, Caché appends
+the code for the new error to the current $ECODE value as a new piece in a
+string delimited by commas, as follows:
+,ZSTORE,M6,ZILLEGAL VALUE,ZPROTECT,
+In the above case, the most recent error is a <PROTECT> error.
+Error codes accrue in the $ECODE special variable until one of the following
+happens:
+
+  • You explicitly clear or set $ECODE.
+  • The length of the accumulated string in $ECODE exceeds the maximum string
+    data length for your implementation.
+  • You terminate the current process.
+
+Clearing $ECODE
+You can clear $ECODE by setting it to the empty string (""), as follows:
+
+   SET $ECODE=""
+
+Setting $ECODE to the empty string has the following effects:
+
+  • It clears all existing $ECODE values. It has no effect on an existing 
+    $ZERROR value.
+  • It clears the error stack for your job. This means that a subsequent call
+    to the $STACK function returns the current execution stack, rather than the
+    last error stack.
+  • It affects error processing flow of control for $ETRAP error handlers. See
+    Error Processing in Using Caché ObjectScript for more details.
+
+Setting $ECODE
+You can force an error by setting $ECODE to an value other than the empty
+string. Setting $ECODE to any non-null value forces an interpreter error during
+the execution of a Caché ObjectScript routine. After Caché sets $ECODE to the
+non-null value that you specify, Caché takes the following steps:
+
+ 1. Writes the specified value to $ECODE, overwriting any previous values.
+ 2. Generates an <ECODETRAP> error. (This sets $ZERROR to the value
+    <ECODETRAP>).
+ 3. Passes control to any error handlers you have established. Your error
+    handlers can check for the $ECODE string value you chose and take steps to
+    handle the condition appropriately.
+
+$ECODE String Overflow
+If the length of the accumulated string in $ECODE exceeds 512 characters, the
+error code that causes the string overflow clears and replaces the current list
+of error codes in $ECODE. In this case, the list of errors in $ECODE is the
+list of errors since the most recent string overflow, beginning with the error
+that caused the overflow. See Using Caché ObjectScript for more information
+about the maximum string data length.
+Notes
+Creating Your Own Error Codes
+The format for the $ECODE special variable is a comma-surrounded list of one or
+more error codes. Error codes starting with the letter U are reserved for the
+user. All other error codes are reserved for Caché.
+User defined $ECODE values should be distinguishable from the values Caché
+automatically generates. To ensure this, always prefix your error text with the
+letter U. Also remember to delineate your error code with commas. For example:
+
+   SET $ECODE=",Upassword expired!,"
+
+Check $ZERROR Rather Than $ECODE for Caché Errors
+Your error handlers should check $ZERROR rather than $ECODE for the most recent
+Caché error.
+See Also
+
+  • ZTRAP command
+  • $STACK function
+  • $ESTACK special variable
+  • $ZEOF special variable
+  • $ZERROR special variable
+  • $ZTRAP special variable
+  • Error Handling in Using Caché ObjectScript
+  • System Error Messages in Caché Error Reference
+
+
+ #}}}
+*$ESTACK*  #{{{
+
+Contains the number of context frames saved on the call stack from a
+user-defined point.
+Synopsis
+
+$ESTACK
+$ES
+
+Description
+$ESTACK contains the number of context frames saved on the call stack for your
+job from a user-defined point. You specify this point by creating a new copy of
+$ESTACK using the NEW command.
+The $ESTACK special variable is similar to the $STACK special variable. Both
+contain the number of context frames currently saved on the call stack for your
+job or process. Caché increments and restores both when changing context. The
+major difference is that you can reset the $ESTACK count to zero at any point
+by using the NEW command. You cannot reset the $STACK count.
+Context Frames and Call Stacks
+When a Caché image is started, before any contexts have been saved on the call
+stack, the values of both $ESTACK and $STACK are zero. Each time a routine
+calls another routine with DO, Caché saves the context of the currently
+executing routine on the call stack, increments $ESTACK and $STACK, and starts
+execution of the called routine in the newly created context. The called
+routine can, in turn, call another routine, and so on. Each time another
+routine is called, Caché increments $ESTACK and $STACK and places more saved
+contexts on the call stack.
+Issuing a DO command, an XECUTE command, or a call to a user-defined function
+establishes a new execution context. Issuing a GOTO command does not.
+As DO commands, XECUTE commands, or user-defined function references create new
+contexts, Caché increments the values of $STACK and $ESTACK. As QUIT commands
+cause contexts to exit, Caché restores the previous contexts from the call
+stack and decrements the values of $STACK and $ESTACK.
+The $ESTACK and $STACK special variables cannot be modified using the SET
+command. Attempting to do so results in a <SYNTAX> error.
+Creating a New $ESTACK
+You can create a new copy of $ESTACK in any context by using the NEW command.
+Caché takes the following actions:
+
+ 1. Saves the old copy of $ESTACK.
+ 2. Creates a new copy of $ESTACK with a value of zero (0).
+
+In this way, you can establish a particular context as the $ESTACK level 0
+context. As you create new contexts with DO, XECUTE, or user-defined functions,
+Caché increments this $ESTACK value. However, when you exit the context in
+which the new $ESTACK was created ($ESTACK at level 0), Caché restores the
+value of the previous copy of $ESTACK.
+Examples
+The following example shows the effect of a NEW command on $ESTACK. In this
+example, the MainRoutine displays the initial values of $STACK and $ESTACK
+(which are the same value). It then calls Sub1. This call increments $STACK and
+$ESTACK. The NEW command creates a $ESTACK with a value of 0. Sub1 calls Sub2,
+incrementing $STACK and $ESTACK. Returning to MainRoutine restores the initial
+values of $STACK and $ESTACK:
+
+Main
+   WRITE !,"Initial: $STACK=",$STACK," $ESTACK=",$ESTACK
+   DO Sub1
+   WRITE !,"Return: $STACK=",$STACK," $ESTACK=",$ESTACK
+   QUIT
+Sub1
+     WRITE !,"Sub1Call: $STACK=",$STACK," $ESTACK=",$ESTACK
+     NEW $ESTACK
+     WRITE !,"Sub1NEW: $STACK=",$STACK," $ESTACK=",$ESTACK
+     DO Sub2
+     QUIT
+Sub2
+     WRITE !,"Sub2Call: $STACK=",$STACK," $ESTACK=",$ESTACK
+     QUIT
+The following example demonstrates how the value of $ESTACK is incremented as
+new contexts are created by issuing DO and XECUTE commands, and decremented as
+these contexts are exited. It also shows that a GOTO command does not create a
+new context or increment $ESTACK:
+
+Main
+   NEW $ESTACK
+   WRITE !,"Initial Main: $ESTACK=",$ESTACK   // 0
+   DO Sub1
+   WRITE !,"Return Main: $ESTACK=",$ESTACK   // 0
+   QUIT
+Sub1
+     WRITE !,"Sub1 via DO: $ESTACK=",$ESTACK  // 1
+     XECUTE "WRITE !,""Sub1 XECUTE: $ESTACK="",$ESTACK"   // 2
+     WRITE !,"Sub1 post-XECUTE: $ESTACK=",$ESTACK   // 1
+     GOTO Sub2
+Sub1Return
+     WRITE !,"Sub1 after GOTO: $ESTACK=",$ESTACK  // 1
+     QUIT
+Sub2
+     WRITE !,"Sub2 via GOTO: $ESTACK=",$ESTACK   // 1
+     GOTO Sub1Return
+Notes
+Context Levels in Programmer and Application Modes
+A routine invoked in application mode starts at a different context level than
+a routine you invoke with the DO command in programmer mode. When you enter a 
+DO command at the Caché Terminal programmer mode prompt, Caché creates a new
+context for the routine called.
+The routine you call can compensate by establishing a $ESTACK level 0 context
+and then use $ESTACK for all context-level references.
+Consider the following routine:
+
+START
+    ; Establish a $ESTACK Level 0 Context
+  NEW $ESTACK
+    ; Display the $STACK context level
+  WRITE !,"$STACK level in routine START is ",$STACK
+   ; Display the $ESTACK context level and exit
+  WRITE !,"$ESTACK level in routine START is ",$ESTACK
+  QUIT
+
+When you run START in application mode, you see the following display:
+
+$STACK level in routine START is 0
+$ESTACK level in routine START is 0
+
+When you run START in programmer mode (by issuing DO ^START at the Caché
+Terminal prompt), you see the following display:
+
+$STACK level in routine START is 1
+$ESTACK level in routine START is 0
+
+$ESTACK and Error Processing
+$ESTACK is particularly useful during error processing when error handlers must
+unwind the call stack to a specific context level. See Error Handling in 
+Using Caché ObjectScript for more information about error processing.
+See Also
+
+  • $STACK function
+  • $STACK special variable
+  • Error Handling in Using Caché ObjectScript
+
+
+ #}}}
+*$ETRAP*  #{{{
+
+Contains a string of Caché ObjectScript commands to be executed when an error
+occurs.
+Synopsis
+
+$ETRAP
+$ET
+
+Description
+$ETRAP contains a string that specifies one or more Caché ObjectScript commands
+that are executed when an error occurs.
+You use the SET command to give $ETRAP the value of a string that contains one
+or more Caché ObjectScript commands. Then, when an error occurs, Caché executes
+the commands you entered into $ETRAP. For example, suppose you set $ETRAP to a
+string that contains a GOTO command to transfer control to an error-handling
+routine:
+
+   SET $ETRAP="GOTO LOGERR^ERRROU"
+
+Caché then executes this command in $ETRAP immediately following any Caché
+ObjectScript command that generates an error condition. Caché executes the 
+$ETRAP command(s) at the same context level in which the error condition
+occurs.
+$ETRAP Commands Compared with XECUTE Commands
+The commands in a $ETRAP string are not executed in a new context level, unlike
+the commands in an XECUTE string. In addition, the $ETRAP command string is
+always terminated by an implicit QUIT command. The implicit QUIT command quits
+with a null-string argument when the $ETRAP error-handling commands are invoked
+in a user-defined function context where an argumented QUIT command is
+required.
+Setting $ETRAP Values in Different Context Levels
+By default, Caché carries the value of the $ETRAP special variable forward into
+new DO, XECUTE, and user-defined function contexts. However, you can create a
+new copy of $ETRAP in a context by issuing the NEW command, as follows:
+
+   NEW $ETRAP
+
+Whenever you issue a NEW for $ETRAP, Caché performs the following actions:
+
+ 1. Saves the copy of $ETRAP that was in use at that point.
+ 2. Creates a new copy of $ETRAP.
+ 3. Assigns the new copy of $ETRAP the same value as the old, saved copy of 
+    $ETRAP.
+
+You then use the SET command to assign a different value to the new copy of 
+$ETRAP. In this way, you can establish new $ETRAP error-handling commands for
+the current context.
+You can also clear $ETRAP by setting it to the null string. Caché then executes
+no $ETRAP commands at the context level in the event of an error.
+When a QUIT command causes the current context to be exited, Caché restores the
+old, saved value of $ETRAP.
+Example
+The following example demonstrates how the value of $ETRAP is carried forward
+into new contexts and how you can invoke $ETRAP error-handling commands again
+in each context after an error occurs. The $ETRAP commands in this example make
+no attempt to dismiss the error. Rather, control by default is passed back to 
+$ETRAP error-handling commands at each previous context level.
+The sample code is as follows:
+
+ETR
+  NEW $ETRAP
+  SET $ETRAP="WRITE !,""$ETRAP invoked at Context Level "",$STACK"
+    ; Initiate an XECUTE context that initiates a DO context
+  XECUTE "DO A"
+  QUIT
+    ; Initiate a user-defined function context
+A
+  SET A=$$B
+  QUIT
+    ; A User-defined function that generates an error
+B()
+  QUIT 1
+
+A sample session using this code might run as follows:
+
+ >DO ^ETR
+$ETRAP invoked at context level 4
+$ETRAP invoked at context level 3
+$ETRAP invoked at context level 2
+$ETRAP invoked at context level 1
+<COMMAND>
+
+Notes
+Use NEW Before Setting $ETRAP to a New Value
+If you assign a new value to $ETRAP in a context without first creating a new
+copy of $ETRAP with the NEW command, Caché establishes that new value as the
+value of $ETRAP not only for the current context but also for all previous
+contexts. Therefore, InterSystems strongly recommends that you use the 
+NEW $ETRAP command to create a new copy of $ETRAP before you set $ETRAP with a
+new value.
+$ETRAP Value is a Line of ObjectScript Code
+Because the string value of $ETRAP is executable Caché ObjectScript commands,
+the length of the string cannot be longer than the maximum length of a Caché
+ObjectScript routine line. See Using Caché ObjectScript for more information.
+$ETRAP and Error Handling
+The $ETRAP special variable is one of many Caché ObjectScript language features
+that enable you to control the handling and logging of errors that occur in
+your applications. $ETRAP in particular plays an important role in controlling
+the flow of execution after an error occurs. See Error Handling in 
+Using Caché ObjectScript for more information about error handling.
+When setting $ETRAP to execute an error handler (for example, with a GOTO
+command) you can specify the error handler as tag (a label in the current
+routine), ^routine (the beginning of a specified external routine), or 
+tag^routine (a specified label in a specified external routine).
+$ETRAP supports tag+offset in some contexts (but not in procedures). This
+optional +offset is an integer specifying the number of lines to offset from 
+tag. InterSystems recommends that you avoid the use of a line offset when
+specifying an error handler location.
+$ETRAP and $ZTRAP
+When you set an error handler using $ZTRAP, this handler takes precedence over
+any existing $ETRAP error handler. Caché implicitly performs a NEW $ETRAP
+command and sets $ETRAP to the null string ("").
+$ETRAP and TRY / CATCH
+The TRY and CATCH commands perform error handling within an execution level.
+When an exception occurs within a TRY block, Caché executes the CATCH block of
+exception handler code that immediately follows the TRY block.
+If $ETRAP is set and an exception occurs in a TRY block, Caché executes CATCH
+in preference to $ETRAP. This occurs if Caché views both exception handlers to
+reside on the same execution level.
+Because $ETRAP is not associated with an execution level, you must NEW $ETRAP
+before setting $ETRAP to establish a level marker, so that Caché will correctly
+take CATCH rather than $ETRAP. Otherwise, a system error (including a system
+error thrown by the THROW command) may take the $ETRAP exception handler.
+You cannot set $ETRAP within a TRY block.
+See Also
+
+  • NEW command
+  • SET command
+  • THROW command
+  • TRY command
+  • $ECODE special variable
+  • $ZEOF special variable
+  • $ZTRAP special variable
+  • Error Handling in Using Caché ObjectScript
+
+
+ #}}}
+*$HALT*  #{{{
+
+Contains a halt trap routine call.
+Synopsis
+
+$HALT
+
+Description
+$HALT contains the name of the current halt trap routine. A halt trap routine
+is called by your application when a HALT command is encountered. This halt
+trap routine may perform clean up or logging processing before issuing a HALT
+command, or it may substitute other processing rather than halting program
+execution.
+You set $HALT to a halt trap routine using the SET command. The halt trap
+routine is specified by a quoted string with the following format:
+
+SET $HALT=location
+
+Here location can be specified as tag (a label in the current routine), 
+^routine (the beginning of a specified external routine), or tag^routine (a
+specified label in a specified external routine).
+$HALT supports tag+offset in some contexts (but not in procedures). This
+optional +offset is an integer specifying the number of lines to offset from 
+tag. InterSystems recommends that you avoid the use of a line offset when
+specifying location.
+$HALT defines a halt trap routine for the current context. If there is already
+a halt trap defined for the current context, the new one replaces it. If you
+specify a nonexistent routine name, a HALT command ignores that $HALT and
+unwinds the stack to locate a valid $HALT at a previous context level.
+To remove the halt trap for the current context, set $HALT to a null string.
+Attempting to remove a halt trap by using the NEW or KILL commands results in a
+<SYNTAX> error.
+Halt Trap Execution
+When you issue a HALT command, Caché checks the current context for $HALT. If
+no $HALT is defined for the current context (or it is set to a nonexistent
+routine name or the null string), Caché unwinds the stack to the previous
+context and looks for $HALT there. This process continues until either a
+defined $HALT is located or the stack is completely unwound. Caché uses the
+value of $HALT to transfer execution to the specified halt trap routine. The
+halt trap routine executes in the context at which $HALT was defined. No error
+code is set or error message issued.
+If no valid $HALT is set in the current context or previous contexts, issuing a
+HALT command completely unwinds the stack and performs an actual program halt.
+Commonly, a halt trap routine performs some cleanup or reporting processing,
+and then issues a HALT command. Note that with $HALT defined, the original HALT
+command invokes the halt trap, but does not perform an actual program halt. For
+an actual halt to occur, the halt trap routine must contain a second HALT
+command.
+A HALT command issued by a halt trap routine is not trapped by that halt trap,
+but it may be trapped by a halt trap established at a lower context level. Thus
+a cascading series of halt traps may be invoked by a single HALT command.
+Similar processing is performed by the error trap command ZTRAP, and the
+associated $ZTRAP and $ETRAP special variables.
+$HALT and ^%ZSTOP
+If you have $HALT set and also have code defined for ^%ZSTOP when a HALT is
+issued, the $HALT is executed first. $HALT can prevent the termination of the
+process, if its halt trap routine does not contain a HALT command.
+A ^%ZSTOP routine is executed when the process is actually terminating. For
+further details on ^%ZSTOP, refer to the technical article Using the Caché ^
+%START and ^%STOP Routines.
+Examples
+The following example uses $HALT to establish a halt trap:
+
+   SET $HALT="MyTrap^CleanupRoutine"
+   WRITE !,"the halt trap is: ",$HALT
+Note that it is the programmer’s responsibility to make sure that the specified
+routine exists.
+The following example shows how the halt trap routine executes in the context
+at which $HALT was defined. In this example, $HALT is defined at $ESTACK level
+0, HALT is issued at $ESTACK level 1, and the halt trap routine executes at
+$ESTACK level 0.
+
+Main
+   NEW $ESTACK
+   SET $HALT="OnHalt"
+   WRITE !,"Main $ESTACK= ",$ESTACK," $HALT= ",$HALT   // 0
+   DO SubA
+   WRITE !,"Returned from SubA"   // not executed
+   QUIT
+SubA
+   WRITE !,"SubA $ESTACK= ",$ESTACK," $HALT= ",$HALT   // 1
+   HALT
+   WRITE !,"this should never display"
+   QUIT
+OnHalt
+   WRITE !,"OnHalt $ESTACK= ",$ESTACK   // 0
+   HALT
+   QUIT
+The following example is identical to the previous example, except that $HALT
+is defined at $ESTACK level 1. A HALT command is issued at $ESTACK level 1, and
+the halt trap routine executes at $ESTACK level 1. The HALT issued by the halt
+trap routine unwinds the stack, and, failing to find a $HALT defined at the
+previous context level, it halts program execution. Thus, the WRITE command
+following the DO command is not executed.
+
+Main
+   NEW $ESTACK
+   WRITE !,"Main $ESTACK= ",$ESTACK," $HALT= ",$HALT   // 0
+   DO SubA
+   WRITE !,"Returned from SubA"   // not executed
+   QUIT
+SubA
+   SET $HALT="OnHalt"
+   WRITE !,"SubA $ESTACK= ",$ESTACK," $HALT= ",$HALT   // 1
+   HALT
+   WRITE !,"this should never display"
+   QUIT
+OnHalt
+   WRITE !,"OnHalt $ESTACK= ",$ESTACK   // 1
+   HALT
+   QUIT
+The following example shows how a cascading series of halt traps can be
+invoked. Halt trap Halt0 is defined at $ESTACK level 0, and halt trap Halt1 is
+defined at $ESTACK level 1. The HALT command is issued at $ESTACK level 2.
+Caché unwinds the stack to invoke the halt trap Halt1 at $ESTACK level 1. This
+halt trap issues a HALT command; Caché unwinds the stack to invoke the halt
+trap Halt0 at $ESTACK level 0. This halt trap issues a HALT command that halts
+program execution.
+
+Main
+   NEW $ESTACK
+   SET $HALT="Halt0"
+   WRITE !,"Main $ESTACK= ",$ESTACK," $HALT= ",$HALT   // 0
+   DO SubA
+   WRITE !,"Returned from SubA"   // not executed
+   QUIT
+SubA
+   SET $HALT="Halt1"
+   WRITE !,"SubA $ESTACK= ",$ESTACK," $HALT= ",$HALT   // 1
+   DO SubB
+   WRITE !,"Returned from SubA"   // not executed
+   QUIT
+SubB
+   WRITE !,"SubB $ESTACK= ",$ESTACK," $HALT= ",$HALT   // 2
+   HALT
+   WRITE !,"this should never display"
+   QUIT
+Halt0
+   WRITE !,"Halt0 $ESTACK= ",$ESTACK   // 0
+   WRITE !,"Bye-bye!"
+   HALT
+   QUIT
+Halt1
+   WRITE !,"Halt1 $ESTACK= ",$ESTACK   // 1
+   HALT
+   QUIT
+See Also
+
+  • HALT command
+
+
+ #}}}
+*$HOROLOG*  #{{{
+
+Contains the local date and time for the current process.
+Synopsis
+
+$HOROLOG
+$H
+
+Description
+$HOROLOG can contain the following:
+
+  • The current local date and time for the current process.
+  • A user-specified non-incrementing date for the current process. Time
+    continues to be the current local time.
+
+$HOROLOG contains a character string that consists of two integer values,
+separated by a comma. These two integers represent the current date and time in
+Caché storage format. These integers are counters, not user-readable dates and
+times. $HOROLOG returns the current date and time in the following format:
+
+ddddd,sssss
+
+The first integer, ddddd, is the current date expressed as a count of the
+number of days since December 31, 1840, where day 1 is January 1, 1841. Because
+Caché represents dates using a counter from an arbitrary starting point, Caché
+is unaffected by the Year 2000 boundary. The maximum value for this date
+integer is 2980013, which corresponds to December 31, 9999.
+The second integer, sssss, is the current time, expressed as a count of the
+number of seconds since midnight of the current day. The system increments the
+time field from 0 to 86399 seconds. When it reaches 86399 at midnight, the
+system resets the time field to 0 and increments the date field by 1. $HOROLOG
+truncates fractional seconds; it represents time in whole seconds only.
+Setting $ZTIMEZONE affects the value of $HOROLOG for the current process. It
+changes the time portion of $HOROLOG, and this change of time can also change
+the date portion of $HOROLOG. After applying the $ZTIMEZONE value, Caché
+adjusts $HOROLOG (if needed) for local time variants, such as Daylight Savings
+Time.
+You can obtain the same current date and time information by invoking a system
+method, as follows:
+
+   WRITE $SYSTEM.SYS.Horolog()
+Refer to the  Class %SYSTEM.SYS section of the Caché Class Reference for
+further details.
+Separating Date and Time
+To get just the date portion or just the time portion of $HOROLOG, you can use
+the $PIECE function, specifying the comma as the delimiter character:
+
+   SET dateint=$PIECE($HOROLOG,",",1)
+   SET timeint=$PIECE($HOROLOG,",",2)
+   WRITE !,"Date and time: ",$HOROLOG
+   WRITE !,"Date only: ",dateint
+   WRITE !,"Time only: ",timeint
+To get just the date portion of a $HOROLOG value, you can also use the
+following programming trick:
+
+   SET dateint=+$HOROLOG
+   WRITE !,"Date and time: ",$HOROLOG
+   WRITE !,"Date only: ",dateint
+The plus sign (+) causes Caché to parse the $HOROLOG string as a number. When
+Caché encounters a nonnumeric character (the comma), it truncates the rest of
+the string and returns the numeric portion. This is the date integer portion of
+the string.
+Date and Time Functions Compared
+The various ways to return the current date and time are compared, as follows:
+
+  • $HOROLOG contains the local, variant-adjusted date and time in Caché
+    storage format. The local time zone is determined from the current value of
+    the $ZTIMEZONE special variable, and then adjusted for local time variants,
+    such as Daylight Savings Time. It returns whole seconds only; fractions of
+    a second are truncated.
+  • $NOW returns the local date and time for the current process. $NOW returns
+    the date and time in Caché storage format. It includes fractional seconds;
+    the number of fractional digits is the maximum precision supported by the
+    current operating system.
+      □ $NOW() determines the local time zone from the value of the $ZTIMEZONE
+        special variable. The local time is not adjusted for local time
+        variants, such as Daylight Savings Time. It therefore may not
+        correspond to local clock time.
+      □ $NOW(tzmins) returns the time and date that correspond to the specified
+        tzmins time zone parameter. The value of $ZTIMEZONE is ignored.
+  • $ZUTIL(188) returns the local, variant-adjusted date and time. The date,
+    time, and local time zone are determined from the host operating system.
+    The value of $ZTIMEZONE is ignored. $ZUTIL(188) returns the date and time
+    in Caché storage format. It includes fractional seconds; the number of
+    fractional digits is the maximum precision supported by the current
+    operating system.
+  • $ZTIMESTAMP contains the UTC (Greenwich Mean) date and time, with
+    fractional seconds, in Caché storage format. Fractional seconds are
+    expressed in three digits of precision (on Windows systems), or six digits
+    of precision (on UNIX systems).
+
+Date and Time Conversions
+You can use the $ZDATE function to convert the date portion of $HOROLOG into
+external, user-readable form. You can use the $ZTIME function to convert the
+time portion of $HOROLOG into external user-readable form. You can use the 
+$ZDATETIME function to convert both the date and time. When using $HOROLOG,
+setting the precision for time values in these functions always returns zeros
+as fractional seconds.
+You can use the $ZDATEH function to convert a user-readable date into the date
+portion of $HOROLOG. You can use the $ZTIMEH function to convert a
+user-readable time into the time portion of $HOROLOG. You can use the 
+$ZDATETIMEH function to convert both the date and time to a $HOROLOG value.
+Setting the Date and Time
+You can use the $ZUTIL(71) function to set $HOROLOG to a user-specified date
+for the current process.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+
+   DO $ZUTIL(71,12345) // set $HOROLOG date
+   WRITE !,$ZDATETIME($HOROLOG,1,1,9)," $HOROLOG changed date"
+   WRITE !,$ZDATETIME($ZUTIL(188),1,1,9)," $ZU(188) no date change"
+   WRITE !,$ZDATETIME($NOW(),1,1,9)," $NOW() no date change"
+   WRITE !,$ZDATETIME($ZUTIL(193,$ZTIMESTAMP),1,1,9)," $ZTS UTC-to-local",
+           " no date change"
+   DO $ZUTIL(71,0)  // restore $HOROLOG
+   WRITE !,$ZDATETIME($HOROLOG,1,1,9)," $HOROLOG current date"
+Note that $ZUTIL(71) changes the $HOROLOG value, but not the $NOW, $ZUTIL(188),
+or $ZTIMESTAMP value.
+Local Time Variant Thresholds
+$HOROLOG calculates the number of seconds from midnight by consulting the
+system clock. Therefore, if the system clock is automatically reset when
+crossing a local time variant threshold, such as the beginning or end of
+Daylight Savings Time, the time value of $HOROLOG also shifts abruptly ahead or
+back by the appropriate number of seconds. For this reason, comparisons of two 
+$HOROLOG time values may yield unanticipated results if the period between the
+two values includes a local time variant threshold.
+$NOW does not adjust for local time variants. Its use may be preferable when
+comparing date and time values if the period between the two values includes a
+local time variant threshold.
+Dates Before 1840
+$HOROLOG cannot be directly used to represent dates outside of the range of
+years 1840 through 9999. However, you can represent historic dates far beyond
+this range using the Caché SQL Julian date feature. Julian dates can represent
+a date as an unsigned integer, counting from 4711 BC (BCE). Julian dates do not
+have a time-of-day component.
+You can convert a Caché $HOROLOG date to a Caché Julian date using the TO_CHAR
+SQL function, or the $SYSTEM.SQL.TOCHAR() method call. You can convert a Caché
+Julian date to a Caché $HOROLOG date using the TO_DATE SQL function, or the
+$SYSTEM.SQL.TODATE() method call.
+The following example takes the current $HOROLOG date and converts it to a
+Julian date. The + before $HOROLOG forces Caché to treat it as a number, and
+thus truncate at the comma, eliminating the time integer:
+
+  WRITE !,"Horolog date = ",+$H
+  SET x=$SYSTEM.SQL.TOCHAR(+$HOROLOG,"J")
+  WRITE !,"Julian date = ",x
+The following example takes a Julian date and converts it to a Caché $HOROLOG
+date:
+
+  SET x=$SYSTEM.SQL.TODATE(2455030,"J")
+  WRITE !,"$HOROLOG date = ",x," = ", $ZDATE(x,1)
+Note that Julian date values smaller than 1721100 cannot be converted; an
+<ILLEGAL VALUE> error is generated.
+For further information on Julian dates, refer to TO_DATE and TO_CHAR in the 
+Caché SQL Reference.
+Examples
+The following example displays the current contents of $HOROLOG.
+
+   WRITE $HOROLOG
+returns a value formatted like this: 58923,49170
+The following example uses $ZDATE to convert the date field in $HOROLOG to a
+date format.
+
+   WRITE $ZDATE($PIECE($HOROLOG,",",1))
+returns a value formatted like this: 04/29/2002
+The following example converts the time portion of $HOROLOG to a time in the
+form of hours:minutes:seconds on a 12-hour (a.m. or p.m.) clock.
+
+CLOCKTIME
+  NEW
+  SET Time=$PIECE($HOROLOG,",",2)
+  SET Sec=Time#60
+  SET Totmin=Time\60
+  SET Min=Totmin#60
+  SET Milhour=Totmin\60
+  IF Milhour=12 { SET Hour=12,Meridian=" pm" }
+  ELSEIF Milhour>12 { SET Hour=Milhour-12,Meridian=" pm" }
+  ELSE { SET Hour=Milhour,Meridian=" am" }
+  WRITE !,Hour,":",Min,":",Sec,Meridian
+  QUIT
+See Also
+
+  • $NOW function
+  • $ZDATE function
+  • $ZDATEH function
+  • $ZDATETIME function
+  • $ZDATETIMEH function
+  • $ZTIME function
+  • $ZTIMEH function
+  • $ZUTIL(188) Local Date/Time with Fractional Seconds function
+  • $ZUTIL(71) Set Date to a Fixed Value function
+  • $ZTIMESTAMP special variable
+  • $ZTIMEZONE special variable
+
+
+ #}}}
+*$IO*  #{{{
+
+Contains the ID of the current input/output device.
+Synopsis
+
+$IO
+$I
+
+Description
+$IO contains the device ID of the current device to which all input/output
+operations are directed. (If the input and output devices are different, $IO
+contains the ID of the current input device.)
+Caché sets the value of $IO to the principal input/output device at login. 
+$PRINCIPAL contains the ID of the principal device. You issue a USE command to
+change the current device. Only the USE and CLOSE commands, a BREAK command, or
+a return to the programmer prompt can change this value.
+The $ZUTIL(96,14) function returns the device type of the current device.
+On UNIX and OpenVMS systems, $IO contains the actual device name.
+On Windows systems, $IO contains a Caché-generated unique identifier for the
+principal device. For terminal devices (TRM, TNT, and LAT), this consists of a
+pseudo-device name enclosed in vertical bars, a colon and another vertical bar,
+followed by the device’s process ID (pid) number. For non-terminal devices, the
+pseudo-device name is enclosed in vertical bars and followed by a unique
+numeric identifier.
+For a Caché terminal: |TRM|:|pid
+For a Telnet terminal: |TNT|nodename:portnumber|pid
+For a LAT terminal: |LAT|:|pid
+For a file descriptor: |FD|file_descriptor_number
+(File descriptors are used with CALLIN/CALLOUT remote access.)
+For a TCP device: |TCP|unique_device_identifier
+For a named pipe: |NPIPE|unique_device_identifier
+For the default printer: |PRN|
+For a printer other than the default: |PRN|physical_device_name
+If the principal device is a null device (which is the default for a background
+process), $IO contains the null device name with ":pid" appended, thus allowing
+you to use $IO for a unique subscript. The null device name contained in $IO
+depends on the operating system.
+
+  • For Windows systems, $IO contains //./nul:pid
+  • For UNIX systems, $IO contains /dev/null:pid
+  • For OpenVMS systems, $IO contains NLA0::pid
+
+If the input device is redirected via a pipe or file, $IO contains  00 .
+You can test the value of $IO, as in the following OpenVMS example:
+
+TESTPRG
+  OPEN "/dev/tty04"
+  USE "/dev/tty04"
+  SET old=$IO
+  CLOSE $IO
+  OPEN "/dev/tty03"
+  USE "/dev/tty03"
+  WRITE !,"Old device: ",old,!,"Current device: ",$IO
+  CLOSE $IO
+  QUIT
+
+The default device number for a device is configurable. Go to the System
+Management Portal, select [Home] > [Configuration] > [Device Settings] >
+[Devices]. For the desired device, click  Edit to display and modify its 
+Physical Device Name: option. If you do this, $IO will contain the assigned
+device number, rather than the actual operating system device name.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+See Also
+
+  • USE command
+  • $PRINCIPAL special variable
+  • $ZUTIL(96,14) Return current device type function
+  • I/O Devices and Commands in Caché I/O Device Guide
+  • Terminal I/O in Caché I/O Device Guide
+
+
+ #}}}
+*$JOB*  #{{{
+
+Contains the ID of the current process.
+Synopsis
+
+$JOB
+$J
+
+Description
+$JOB contains the ID number of the current process. This ID number is the host
+operating system’s actual Process ID (pid). This ID number is unique for each
+process.
+The ID number for an I/O process (such as a Caché terminal process) is part of
+the string contained in the $IO special variable.
+The format of the string returned to $JOB is determined by the setting of the 
+$ZUTIL(68,42) or $ZUTIL(69,42) functions. By default $JOB returns only the
+10-digit pid, but you can set these functions to have $JOB return both the pid
+and the node name. If you change the setting of this switch, you must recompile
+any routines that use the string returned to $JOB in arithmetic operations
+where $JOB is converted to an integer.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+To return the pid as the terminal prompt, use $ZUTIL(186,5).
+Other Information About the Current Process
+You can obtain the same current process ID number by invoking a system method,
+as follows:
+
+   WRITE $SYSTEM.SYS.ProcessID()
+Refer to the  Class %SYSTEM.SYS section of the Caché Class Reference for
+further details.
+You can use $JOB to obtain the job number for the current process as follows:
+
+   ZNSPACE "%SYS"
+   SET Job=##class(SYS.Process).%OpenId($JOB)
+   WRITE Job.JobNumber
+This example requires that UnknownUser have assigned the %DB_CACHESYS role.
+Refer to the  Class SYS.Process section of the Caché Class Reference for
+further details.
+You can obtain status information about the current process from the $ZJOB
+special variable.
+You can obtain the pid of the child process or the parent process of the
+current process from the $ZCHILD and $ZPARENT special variables.
+You can obtain the pids of the current jobs in the job table from the ^$JOB
+structured system variable.
+See Also
+
+  • JOB command
+  • $ZUTIL(68,42) $JOB Format for Process function
+  • $ZUTIL(69,42) $JOB Format System Default function
+  • $IO special variable
+
+
+ #}}}
+*$KEY*  #{{{
+
+Contains the terminator character from the most recent READ.
+Synopsis
+
+$KEY
+$K
+
+Description
+$KEY contains the character or character sequence that terminated the last READ
+command on the current device. $KEY and $ZB are very similar in function; see
+below for a detailed comparison.
+
+  • If the last read terminated because of a terminator character (such as the
+    <RETURN> key), $KEY contains the terminator character.
+  • If the last read terminated because of a timeout or a fixed-length read
+    length limit, $KEY contains the null string. No terminator character was
+    encountered.
+  • If the last read was a single-character read (READ *a), and a character was
+    entered, $KEY contains the actual input character.
+
+$KEY and $ZB are very similar, though not identical. See below for a
+comparison.
+You can use the SET command to specify a value for $KEY. You can use the ZZDUMP
+command to display the value of $KEY.
+During a terminal session, the end of every command line is recorded in $KEY as
+a carriage return (hexadecimal 0D). In addition, the $KEY special variable is
+initialized to carriage return by the process that initializes the terminal
+session. Therefore, to display the value of $KEY set by the READ command or a
+SET command during a terminal session, you must copy the $KEY value to a local
+variable within the same line of code.
+Examples
+In the following example, a variable-length READ command either receives data
+from the terminal or times out after 10 seconds. If the user inputs the data
+before the timeout, $KEY contains the user-input carriage return (hex 0D) that
+terminated the data input. If, however, the READ timed out, $KEY contains the
+null string, indicating that no terminator character was received.
+
+  READ "Ready or Not: ",x:10
+  ZZDUMP $KEY
+
+In the following example, a fixed-length READ command either receives data from
+the terminal or times out after 10 seconds. If the user inputs the specified
+number of characters (in this case, one character), the user does not have to
+press <RETURN> to conclude the READ operation. The user can respond to the read
+prompt by pressing <RETURN> rather than entering the specified number of
+characters.
+If the read operation timed out, both $KEY and $ZB contain the null string. If
+the user inputs a one-character middle initial, $KEY contains the null string,
+because the fixed-length READ operation concluded without a terminator
+character. If the user pressed <RETURN> rather than entering a middle initial, 
+$KEY contains the user-input carriage return.
+
+   READ "Middle initial: ",z#1:10
+   IF $ASCII($ZB)=-1 {
+     WRITE !,"The read timed out" }
+   ELSEIF $ASCII($KEY)=-1 {
+     WRITE !,"A character was entered" }
+   ELSEIF $ASCII($KEY)=13 {
+     WRITE !,"A line return was entered" }
+   ELSE {
+     WRITE !,"Unexpected result" }
+
+Notes
+$KEY and $ZB Compared
+Both $KEY and $ZB contain the character that terminates a READ operation. These
+two special variables are similar, but not identical. Here are the principal
+differences:
+
+  • $KEY can be set using the SET command. $ZB cannot be SET.
+  • Following a successful fixed-length READ, $ZB contains the final character
+    input (for example, when the 5-digit postal code  02138 is input as a
+    fixed-length READ, $ZB contains  8 ). Following a successful fixed-length 
+    READ, $KEY contains the null string ("").
+  • $KEY does not support block-based read and write operations, such as
+    magnetic tape I/O.
+
+$KEY on the Command Line
+When issuing commands interactively from the Caché Terminal command line, you
+press <RETURN> to issue each command line. The $KEY and $ZB special variables
+record this command line terminator character. Therefore, when using $KEY or 
+$ZB to return the termination status of a read operation, you must set a
+variable as part of the same command line.
+For example, if you issue the command:
+
+>READ x:10
+
+from the command line, then check $KEY, it will not contain the results of the
+read operation; it will contain the <RETURN> character that executed the
+command line. To return the results of the read operation, set a local variable
+with $KEY in the same command line, as follows:
+
+>READ x:10 SET rkey=$KEY
+
+This preserves the value of $KEY set by the read operation. To display this
+read operation value, issue either of the following command line statements:
+
+>WRITE $ASCII(rkey)
+   ; returns -1 for null string (time out)
+   ; returns ASCII decimal value for terminator character
+>ZZDUMP rkey
+   ; returns blank line for null string (time out)
+   ; returns hexadecimal value for terminator character
+
+See Also
+
+  • READ command
+  • SET command
+  • ZZDUMP command
+  • $ZB special variable
+
+
+ #}}}
+*$MVV(n)*  #{{{
+
+An array of MultiValue special variables.
+Synopsis
+
+$MVV(n)
+
+Description
+$MVV(n) is an array of Caché MultiValue special variables. The n subscript can
+be an integer in the range of 0 through 255, inclusive, or a variable set to
+one of those integer values. Each subscripted $MVV variable has a defined data
+type and contains a default value. All $MVV variables can be set using the SET
+command.
+The following are the data types of the $MVV variables:
+
+Subscript Range        Data Type
+
+0 through 15     Single-character data
+
+16 through 127   String data
+
+128 through 193  Integer data
+
+194 through 255  Boolean data
+
+The following are the default values for the $MVV variables:
+
+Subscript                             Default Value
+  Range
+
+           Dynamic array delimiter characters with ASCII values 248 through
+0 through  255: 0=@IM ($CHAR(255)), 1=@FM ($CHAR(254)), 2=@VM ($CHAR(253)), 3=
+7          @SM ($CHAR(252)), 4=@TM ($CHAR(251)), 5=$CHAR(250), 6=$CHAR(249), 7=
+           $CHAR(248).
+
+8 through  Empty string
+14
+
+15         Question mark (?) character
+
+16
+through    Empty string. 19=MVBasic device.
+37
+
+38         Components of the current date, as integers: 38=day, 39=month, 40=
+through    2-digit year, 41=4-digit year.
+41
+
+42         Empty string. 46= SQL error message during index operations. 51=
+through    spooler print job list.
+84
+
+85         Question mark (?) character
+
+86
+through    Empty string
+127
+
+128        MVBasic status. On failed lock operation, contains the pid of the
+           lock owner.
+
+129
+through    The integer 0
+133
+
+132        The integer 10
+
+133
+through    The integer 0
+135
+
+136        The integer 14648
+
+137        The time, in $HOROLOG format, when the current process was
+           initiated. An integer count of seconds since midnight.
+
+138
+through    The integer 0
+147
+
+148        The integer 4
+
+           The integer/boolean value 0. 169=SQL error code during index
+149        operations. 174=COMMON unique node subscript ID. 176=MVBasic
+though     lockport; on failed lock operation, contains the pid of the lock
+255        owner. 213=STACKCOMMON on/off. 218=%SYSTEM.MV.InputDataOnly() method
+           setting.
+
+
+ #}}}
+*$PRINCIPAL*  #{{{
+
+Contains the ID of the principal I/O device.
+Synopsis
+
+$PRINCIPAL
+$P
+
+Description
+$PRINCIPAL contains the ID of the principal I/O device for the current process.
+$PRINCIPAL operates like $IO. Refer to $IO for details of specific device types
+and system platforms.
+If the principal device is closed, $PRINCIPAL does not change. If the principal
+input and output devices differ, $PRINCIPAL reflects the ID of the principal
+input device.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+Examples
+This example uses $PRINCIPAL to test for a principal device.
+
+   IF $PIECE($PRINCIPAL,"|",4) {
+     WRITE "Principal device is: ",$PRINCIPAL }
+   ELSE  { WRITE "Undefined" }
+This example uses and writes to the principal device.
+
+   USE $PRINCIPAL
+   WRITE "output to $PRINCIPAL"
+Notes
+$PRINCIPAL and USE 0
+$PRINCIPAL is functionally equivalent to the widely used, but nonstandard, USE
+0. Use $PRINCIPAL instead of USE 0 because it is standard, and because it makes
+your code more flexible.
+See Also
+
+  • USE command
+  • $IO special variable
+
+
+ #}}}
+*$QUIT*  #{{{
+
+Contains a flag indicating what kind of QUIT is required to exit the current
+context.
+Synopsis
+
+$QUIT
+$Q
+
+Description
+$QUIT contains a value that indicates whether an argumented QUIT command is
+required to exit from the current context. If an argumented QUIT is required to
+exit from the current context, $QUIT contains a one (1). If an argumented QUIT
+is not required to exit from the current context, $QUIT contains a zero (0).
+In a context created by issuing a DO or XECUTE command, an argumented QUIT is
+not required to exit. In a context created by a user-defined function, an
+argumented QUIT is required to exit.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+Example
+The following example demonstrates $QUIT values in a DO context, in an XECUTE
+context, and in a user-defined function context.
+The sample code is as follows:
+
+QUI
+  DO
+  .  WRITE !,"$QUIT in a DO context = ",$QUIT
+  .  QUIT
+  XECUTE "WRITE !,""$QUIT in an XECUTE context = "",$QUIT"
+  SET A=$$A
+  QUIT
+A()
+  WRITE !,"$QUIT in a User-defined function context =",$QUIT
+  QUIT 1
+
+A sample session using this code might run as follows:
+
+USER>DO ^QUI
+$QUIT in a DO context = 0
+$QUIT in an XECUTE context = 0
+$QUIT in a User-defined function context = 1
+
+Notes
+$QUIT and Error Processing
+The $QUIT special variable is particularly useful during error processing when
+the same error handler can be invoked at context levels that require an
+argumented QUIT and at context levels that require an argumentless QUIT.
+See the Error Handling in Using Caché ObjectScript for more information about
+error processing.
+See Also
+
+  • DO command
+  • QUIT command
+  • XECUTE command
+
+
+ #}}}
+*$ROLES*  #{{{
+
+Contains the roles assigned to the current process.
+Synopsis
+
+$ROLES
+
+Description
+$ROLES contains the list of roles assigned to the current process. This list of
+roles consists of a comma-separated string that can contain both User Roles and
+Added Roles.
+A role is assigned to a user either by using the SQL GRANT statement, or by
+using the System Management Portal [Home] > [Security Management] > [Users]
+options to edit the definition of the User to assign a role. A role can be
+defined using the SQL CREATE ROLE statement and deleted using the SQL DROP ROLE
+statement. A role must be defined before it can be assigned to a user. A role
+can be revoked from a user using the SQL REVOKE statement.
+The $ROLES list does not contain a listing of roles assigned to roles. This
+hierarchical assignment of roles is used within SQL exclusively, and is not
+available through Caché System Security.
+When a process is created using the JOB command, it inherits the same $ROLES
+and $USERNAME values as its parent process.
+SET $ROLES
+You can use the SET command to change the Added Roles part of the list
+contained in $ROLES. Setting $ROLES only alters a process' Added Roles. It can
+not alter its User Roles. To set $ROLES to a different list of Added Roles is a
+restricted system capability. However, such restrictions do not apply to
+setting $ROLES to a null string, which deletes the list of Added Roles.
+A role must be defined before it can be added. You can define a role using the
+SQL CREATE ROLE command. CREATE ROLE does not give any privileges to a role. To
+assign privileges to a role use either the SQL GRANT statement, or the System
+Management Portal [Home] > [Security Management] > [Roles] interface.
+NEW $ROLES
+NEW $ROLES stacks the current values of both $ROLES and $USERNAME. You can use
+the NEW command on $ROLES without security restrictions.
+Examples
+The following example returns the list of roles for the current process.
+
+   WRITE $ROLES
+The following example first creates the roles Vendor, Sales, and Contractor. It
+then displays the comma-separated list of default roles (which contain both
+User Roles and Added Roles). The first SET $ROLES replaces the list of Added
+Roles with the two roles Sales and Contractor. The second SET $ROLES
+concatenates the Vendor role to the list of Added Roles. The final SET $ROLES
+sets the Added Roles list to the null string, removing all Added Roles. The
+User Roles remain unchanged throughout:
+
+CreateRoles
+   DO $SYSTEM.Security.Login("_SYSTEM","SYS")
+   &sql(CREATE ROLE Vendor)
+   &sql(CREATE ROLE Sales)
+   &sql(CREATE ROLE Contractor)
+   IF SQLCODE=0 {
+     WRITE !,"Created new roles"
+     GOTO SetRoles }
+   ELSEIF SQLCODE=-118 {
+     WRITE !,"Role already exists"
+     GOTO SetRoles }
+   ELSE { WRITE !,"CREATE ROLE failed, SQLCODE=",SQLCODE }
+SetRoles
+     WRITE !,"Initial: ",$ROLES
+     SET $ROLES="Sales,Contractor"
+     WRITE !,"Replaced: ",$ROLES
+     SET $ROLES=$ROLES_",Vendor"
+     WRITE !,"Concatenated: ",$ROLES
+     SET $ROLES=""
+     WRITE !,"Nulled: ",$ROLES
+See Also
+
+  • Caché ObjectScript: SET command NEW command $USERNAME special variable
+  • Caché SQL: CREATE ROLE DROP ROLE GRANT REVOKE %CHECKPRIV
+
+
+ #}}}
+*$STACK_var*  #{{{
+
+Contains the number of context frames saved on the call stack.
+Synopsis
+
+$STACK
+$ST
+
+Description
+$STACK contains the number for context frames currently saved on the call stack
+for your process. You can also look at $STACK as the zero-based context level
+number of the currently executing context. Therefore, when a Caché job is
+started, before any contexts have been saved on the call stack, the value of 
+$STACK is zero (0).
+Each time a routine calls another routine with a DO command, the context of the
+currently executing routine is saved on the call stack and execution starts in
+the newly created context of the called routine. The called routine can, in
+turn, call another routine and so on. Each additional call causes another saved
+context to be placed on the call stack.
+An XECUTE command and a user-defined function reference also establish a new
+execution context. A GOTO command does not.
+As new contexts are created by DO commands, XECUTE commands, or user-defined
+function references, the value of $STACK is incremented. As contexts are exited
+with the QUIT command, previous context are restored from the call stack and
+the value of $STACK is decremented.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+$ESTACK is identical to $STACK, except that you can establish a $ESTACK level
+of 0 (zero) at any point by issuing a NEW $ESTACK command. You cannot NEW the 
+$STACK special variable.
+Examples
+The following example demonstrates how the value of $STACK is incremented as
+new contexts are create and decremented as contexts are exited.
+The sample code is as follows:
+
+STA
+  WRITE !,"Context level in routine STA = ",$STACK
+  DO A
+  WRITE !,"Context level after routine A = ",$STACK
+  QUIT
+A
+  WRITE !,"Context level in routine A = ",$STACK
+  DO B
+  WRITE !, "Context level after routine B = ",$STACK
+  QUIT
+B
+  WRITE !,"Context level in routine B = ",$STACK
+  XECUTE "WRITE !,""Context level in XECUTE = "",$STACK"
+  WRITE !,"Context level after XECUTE = ",$STACK
+  QUIT
+A sample session using this code might run as follows:
+
+USER>DO ^STA
+Context level in routine STA = 1
+Context level in routine A = 2
+Context level in routine B = 3
+Context level in XECUTE = 4
+Context level after XECUTE = 3
+Context level after routine B = 2
+Context level after routine A = 1
+
+Notes
+Context levels in Application Mode and Programmer Mode
+A routine that is invoked in application mode starts at a different context
+level than a routine invoked from the programmer mode prompt with a DO command.
+The DO command typed at the programmer mode prompt causes a new context to be
+created. The following example shows the routine START invoked in application
+mode and in programmer mode.
+Consider the following routine:
+
+START
+  ; Display the context level and exit
+  WRITE !,"Context level in routine START is ",$STACK
+  QUIT
+
+When you run START in application mode, you see the following display:
+
+Context level in routine START is 0
+
+When you run START in programmer mode (by issuing DO ^START at the terminal
+prompt), you see the following display:
+
+Context level in routine START is 1
+
+See Also
+
+  • $STACK function
+  • $ESTACK special variable
+  • Error Handling in Using Caché ObjectScript
+
+
+ #}}}
+*$STORAGE*  #{{{
+
+Contains the number of bytes available for local variable storage.
+Synopsis
+
+$STORAGE
+$S
+
+Description
+$STORAGE returns the number of bytes available for local variable storage in
+the current process partition. This value decreases as local variables are
+added to the local variable space, for example, by using the SET command. This
+value increases as local variables are removed, for example, by using the KILL
+command. The $STORAGE value is not affected by the size of the current routine.
+To return the initial size of the local variable storage area, use the 
+$ZSTORAGE special variable.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+See Also
+$ZSTORAGE special variable
+
+ #}}}
+*$SYSTEM*  #{{{
+
+Contains system information about system objects.
+Synopsis
+
+$SYSTEM
+
+$SYSTEM.class.method()
+
+Description
+$SYSTEM can be invoked as either a special variable, or as a class which
+invokes methods that return system information.
+$SYSTEM as a special variable contains the current system name and the name of
+the current instance of Caché, separated by a colon (:). These names are in
+uppercase letters, and if Caché is used in the name of your current instance of
+Caché it is spelled without an accent on the final letter. For example:
+
+MYCOMPUTER:CACHE2
+
+$SYSTEM as a class provides access to a variety of system objects. You can
+invoke a method that returns information, or a method that performs some
+operation such as upgrading or loading and returns status information. Caché
+supports several classes of system objects, including the following:
+
+  • Version: for version numbers of Caché and its components
+  • SYS: for the system itself
+  • OBJ: for Objects
+  • SQL: for SQL queries
+  • CSP: for Caché Server Pages
+
+Note that object class names and method names are case-sensitive. Specifying
+the wrong case for these names results in a <CLASS DOES NOT EXIST> or <METHOD
+DOES NOT EXIST> error. If you do not specify parentheses with the method name,
+it issues a <SYNTAX> error.
+For further information on using $SYSTEM to access these objects, refer to the
+Using Objects with Caché ObjectScript chapter of Using Caché Objects. $SYSTEM
+can access the System API classes in the %SYSTEM class library, described in
+the The Caché Class Library section of Using Caché Objects.
+Examples
+The following is an example of using $SYSTEM to invoke a method that returns
+system information:
+
+   WRITE $SYSTEM.OBJ.Version()
+returns a string such as the following:
+Cache Objects Version 5.1.0.708
+Note that this objects version is not formatted the same as the system version
+number contained in the $ZVERSION special variable.
+You can list all of the methods for the OBJ class as follows. (By changing the
+class name, you can use this method to get a list for any system class):
+
+   DO $SYSTEM.OBJ.Help()
+To list information about just one method in a class, specify the method name
+in the Help argument list, as shown in the following example:
+
+   DO $SYSTEM.OBJ.Help("Load")
+The following are a few more examples of $SYSTEM that invoke methods:
+
+   DO $SYSTEM.OBJ.Upgrade()
+   DO $SYSTEM.OBJ.ShowFlags()
+   DO $SYSTEM.CSP.DisplayConfig()
+   WRITE !,$SYSTEM.Version.GetPlatform()
+   WRITE !,$SYSTEM.SYS.TimeStamp()
+The following example calls the same methods as the previous example, using the
+##class(%SYSTEM) syntax form:
+
+   DO ##class(%SYSTEM.OBJ).Upgrade()
+   DO ##class(%SYSTEM.OBJ).ShowFlags()
+   DO ##class(%SYSTEM.CSP).DisplayConfig()
+   WRITE !,##class(%SYSTEM.Version).GetPlatform()
+   WRITE !,##class(%SYSTEM.SYS).TimeStamp()
+The previous two examples requires that UnknownUser have assigned the
+%DB_CACHESYS role.
+See Also
+
+  • $ISOBJECT function
+  • $ZVERSION special variable
+  • The Caché Class Library in Using Caché Objects
+  • Using Objects with Caché ObjectScript in Using Caché Objects
+
+
+ #}}}
+*$TEST*  #{{{
+
+Contains the truth value resulting from the last command using the time-out
+option.
+Synopsis
+
+$TEST
+$T
+
+Description
+$TEST contains the truth value (1 or 0) resulting from the last command with a
+time-out. It can be set by any command or function that can return a logical
+condition. Commands that can take a time-out value include JOB, LOCK, OPEN, 
+READ, and CLOSE.
+$TEST is set by the following commands, regardless of whether they are entered
+from programmer mode or encountered in routine code:
+
+  • A timed READ sets $TEST to 1 if the read completes before the time-out
+    expires. If the time-out expires, $TEST is set to 0.
+  • A timed LOCK sets $TEST to 1 if the lock attempt succeeds before the
+    time-out expires. If the time-out expires, $TEST is set to 0.
+  • A timed OPEN sets $TEST to 1 if the open attempt succeeds before the
+    time-out expires. If the time-out expires, $TEST is set to 0.
+  • A timed JOB sets $TEST equal to 1 if the attempt to start the new job
+    succeeds before the time-out expires. If the time-out expires, $TEST is set
+    equal to 0.
+
+Note:
+$TEST is also set by the legacy version of the IF command. It is neither set
+nor checked by the current block-structured IF command. When the test
+expression of a legacy IF command is evaluated, $TEST is set equal to the
+resulting truth value. In other words, if the IF expression tests true, $TEST
+is set to 1. If it tests false, $TEST is set to 0 (zero).
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+Example
+The following code performs a timed read and uses $TEST to test for completion
+of the read.
+
+   READ a:10
+   GOTO:$TEST x ; received data
+   ELSE  GOTO y ; did not receive data
+
+Notes
+Operations That Do Not Set $TEST
+JOB, LOCK, OPEN, READ, and CLOSE commands without a time-out have no effect on 
+$TEST. Postconditional expressions also have no effect on $TEST.
+The block-oriented IF command (which defines a block of code by enclosing it in
+curly braces) does not use $TEST in any way. Some invocations of the legacy IF
+command also do not use $TEST: IF commands without an argument, and the ELSE
+command have no effect on $TEST.
+Unsuccessful Timed Operations
+Caché does not produce an error message after an unsuccessful timed operation.
+Your application must check $TEST and then produce an appropriate message.
+See Also
+
+  • CLOSE command
+  • JOB command
+  • LOCK command
+  • OPEN command
+  • READ command
+  • IF command
+  • IF (legacy version) command
+
+
+ #}}}
+*$TLEVEL*  #{{{
+
+Contains the current nesting level for transaction processing.
+Synopsis
+
+$TLEVEL
+$TL
+
+Description
+$TLEVEL contains the current nesting level in transaction processing. The
+number of TSTART commands issued before Caché encounters a TCOMMIT or TROLLBACK
+determines the nesting level.
+
+  • TSTART increments $TLEVEL by 1.
+  • TCOMMIT decrements $TLEVEL by 1.
+  • TROLLBACK 1 decrements $TLEVEL by 1.
+  • TROLLBACK resets $TLEVEL to 0.
+
+A $TLEVEL of 0 cannot be decremented. Issuing a TROLLBACK (or TROLLBACK 1) when
+$TLEVEL=0 performs no operation. However, issuing a TCOMMIT when $TLEVEL=0
+results in a <COMMAND> error.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+SQL and $TLEVEL
+$TLEVEL is also set by SQL transaction statements. It is incremented by the SQL
+START TRANSACTION and SAVEPOINT statements. It is decremented by the SQL COMMIT
+and ROLLBACK statements.
+Despite their shared use of $TLEVEL, Caché ObjectScript transaction processing
+differs from, and is incompatible with, SQL transaction processing using these
+SQL statements. An application should not attempt to mix the two types of
+transaction processing within the same transaction.
+Examples
+The following example shows that each TSTART increments $TLEVEL and each 
+TCOMMIT decrements $TLEVEL:
+
+  WRITE !,"transaction level ",$TLEVEL  // 0
+  TSTART
+  WRITE !,"transaction level ",$TLEVEL  // 1
+  TSTART
+  WRITE !,"transaction level ",$TLEVEL  // 2
+  TCOMMIT
+  WRITE !,"transaction level ",$TLEVEL  // 1
+  TCOMMIT
+  WRITE !,"transaction level ",$TLEVEL  // 0
+The following example shows that repeated invocations of TSTART increment 
+$TLEVEL, and TROLLBACK 1 decrements $TLEVEL.
+
+  WRITE !,"transaction level ",$TLEVEL  // 0
+  TSTART
+  WRITE !,"transaction level ",$TLEVEL  // 1
+  TSTART
+  WRITE !,"transaction level ",$TLEVEL  // 2
+  TROLLBACK 1
+  WRITE !,"transaction level ",$TLEVEL  // 1
+The following example shows that repeated invocations of TSTART increment 
+$TLEVEL, and TROLLBACK resets $TLEVEL to 0.
+
+  WRITE !,"transaction level ",$TLEVEL  // 0
+  TSTART
+  TSTART
+  TSTART
+  WRITE !,"transaction level ",$TLEVEL  // 3
+  TROLLBACK
+  WRITE !,"transaction level ",$TLEVEL  // 0
+The following example shows that if $TLEVEL is 0, TROLLBACK commands have no
+effect:
+
+  WRITE !,"transaction level ",$TLEVEL  // 0
+  TROLLBACK
+  WRITE !,"transaction level ",$TLEVEL  // 0
+  TROLLBACK 1
+  WRITE !,"transaction level ",$TLEVEL  // 0
+  TROLLBACK
+  WRITE !,"transaction level ",$TLEVEL  // 0
+See Also
+
+  • TCOMMIT command
+  • TROLLBACK command
+  • TSTART command
+  • Using ObjectScript for Transaction Processing in Using Caché ObjectScript
+
+
+ #}}}
+*$USERNAME*  #{{{
+
+Contains the username for the current process.
+Synopsis
+
+$USERNAME
+
+Description
+$USERNAME contains the username for the current process. This can be in one of
+two forms:
+
+  • The name of the current user; for example: Mary. This value is returned if
+    multiple security domains are not allowed.
+  • The name and system address of the current user; for example: Mary@jupiter.
+    This value is returned if multiple security domains are allowed.
+
+To allow multiple security domains, go to the System Management Portal, select
+[Home] > [Security Management] > [System Security Settings] > [System-wide
+Security Parameters]. Select the Allow multiple security domains check box.
+Changes to this setting apply to new invoked processes; changing it does not
+affect the value returned by the current process.
+You cannot use the SET command or the NEW command to modify this value.
+However, NEW $ROLES also stacks the current $USERNAME value.
+Commonly, the $USERNAME value is the username specified at connection time.
+However, if unauthenticated access is permitted, a user terminal or an ODBC
+client may connect to Caché without specifying a username. In this case, 
+$USERNAME contains the string  UnknownUser .
+When a process is created using the JOB command, it inherits the same $USERNAME
+and $ROLES values as its parent process.
+A username can be created using the SQL CREATE USER statement and deleted using
+the SQL DROP USER statement. A user password can be changed using the SQL 
+ALTER USER statement. A user can have roles assigned to it, either by using the
+SQL GRANT statement, or by using system utilities to add a role to the user.
+You can access the list of roles assigned to the current process with the 
+$ROLES special variable. A role can be revoked from a user using the SQL REVOKE
+statement.
+$USERNAME is used in Caché SQL as the USER, CURRENT_USER, and SESSION_USER
+default field values.
+Examples
+The following example returns the username for the current process.
+
+   WRITE $USERNAME
+The following example returns the domain name for the current process.
+
+   WRITE $PIECE($USERNAME,"@",2)
+See Also
+
+  • Caché ObjectScript $ROLES special variable
+  • Caché SQL: CREATE TABLE CREATE USER DROP USER ALTER USER GRANT REVOKE
+    %CHECKPRIV
+
+
+ #}}}
+*$X*  #{{{
+
+Contains the current horizontal position of the cursor.
+Synopsis
+
+$X
+
+Description
+$X contains the current horizontal position of the cursor. As characters are
+written to a device, Caché updates $X to reflect the horizontal cursor
+position.
+Each printable character that is output increments $X by 1. A carriage return
+(ASCII 13) or form feed (ASCII 12) resets $X to 0 (zero).
+$X is a 16-bit unsigned integer.
+
+  • On non-Unicode systems, $X wraps to 0 when its value reaches 65536. In
+    other words, if $X is 65535, the next output character resets it to 0.
+  • On Unicode systems, $X wraps to 0 when its value reaches 16384 (the two
+    remaining bits are used for Japanese pitch encoding).
+
+You can use the SET command to give a value to $X and $Y. For example, you may
+use special escape sequences that alter the physical cursor position without
+updating the $X and $Y values. In this case, use SET to assign the correct
+values to $X and $Y after you use the escape sequences.
+Notes
+NLS Character Mapping
+The National Language Support (NLS) utility $X/$Y tab defines the $X and $Y
+cursor movement characters for the current locale. For further details, refer
+to the article System Classes for National Language Support.
+$X with Terminal I/O
+The following table shows the effects of different characters on $X.
+
+             Echoed Character                ASCII          Effect on $X
+                                              Code
+
+<FORM FEED>                                 12        $X=0
+
+<RETURN>                                    13        $X=0
+
+<LINE FEED>                                 10        $X=$X
+
+<BACKSPACE>                                 8         $X=$X-1
+
+<TAB>                                       9         $X=$X+1
+
+Any printable ASCII character               32-126    $X=$X+1
+
+Nonprintable characters (such as escape     127-255   See Using Caché
+sequences)                                            ObjectScript.
+
+The S(ecret) protocol of the OPEN and USE commands turns off echoing. It also
+prevents $X from being changed during input, so it indicates the true cursor
+position.
+WRITE $CHAR() changes $X. WRITE * does not change $X. For example, 
+WRITE $X,"/",$CHAR(8),$X performs the backspace (deleting the / character) and
+resets $X accordingly, returning 01. In contrast, WRITE $X,"/",*8,$X performs
+the backspace (deleting the / character) but does not reset $X; it returns 02.
+(See the WRITE command for further details.)
+Using WRITE *, you can send a control sequence to your terminal and $X will
+still reflect the true cursor position. Since some control sequences do move
+the cursor, you can use the SET command to set $X directly. For example, the
+following commands move the cursor to column 20 and line 10 on a Digital VT100
+terminal (or equivalent) and set $X and $Y accordingly:
+
+   SET dy=10,dx=20
+   WRITE *27,*91,dy+1,*59,dx+1,*72
+   SET $Y=dy,$X=dx
+
+ANSI standard control sequences (such as escape sequences) that the device acts
+on but does not output can produce a discrepancy between the $X and $Y values
+and the true cursor position. To avoid this problem use the WRITE * (integer
+expression) syntax and specify the ASCII value of each character in the string.
+For example, instead of using:
+
+   WRITE !,$CHAR(27)_"[1m"
+   WRITE !,$X
+use this equivalent form:
+
+   WRITE !,*27,*91,*49,*109
+   WRITE !,$X
+As a rule, after any escape sequence that explicitly moves the cursor, you
+should update $X and $Y to reflect the actual cursor position.
+$X with TCP and Interprocess Communication
+When you use the WRITE command to send data to either a client or server TCP
+device, Caché first stores the data in a buffer. It also updates $X to reflect
+the number of characters in the buffer. It does not include the ASCII
+characters <RETURN> and <LINE FEED> in this count because they are considered
+to be part of the record.
+If you flush the $X buffer with the WRITE ! command, Caché resets $X to 0 and
+increments the $Y value by 1. If you flush the $X and $Y buffers with the 
+WRITE # command, Caché writes the ASCII character <FORM FEED> as a separate
+record and resets both $X and $Y to 0.
+See Also
+
+  • WRITE command
+  • $Y special variable
+  • $ZUTIL(68,22) $X Update Mode for Escape Sequences function
+  • $ZUTIL(69,22) $X Update Mode for Escape Sequences function
+  • I/O Devices and Commands in Caché I/O Device Guide
+  • Terminal I/O in Caché I/O Device Guide
+  • Local Interprocess Communication in Caché I/O Device Guide
+  • TCP Communication in Caché I/O Device Guide
+
+
+ #}}}
+*$Y*  #{{{
+
+Contains the current vertical position of the cursor.
+Synopsis
+
+$Y
+
+Description
+$Y contains the current vertical position of the cursor. As characters are
+written to a device, Caché updates $Y to reflect the vertical cursor position.
+Each line feed (newline) character (ASCII 10) that is output increments $Y by
+1. A form feed character (ASCII 12) resets $Y to 0.
+$Y is a 16-bit unsigned integer. $Y wraps to 0 when its value reaches 65536. In
+other words, if $Y is 65535, the next output character resets it to 0.
+You can use the SET command to give a value to $X and $Y. For example, you may
+use special escape sequences that alter the physical cursor position without
+updating the $X and $Y values. In this case, use SET to assign the correct
+values to $X and $Y after you use the escape sequences.
+Notes
+NLS Character Mapping
+The National Language Support (NLS) utility $X/$Y tab defines the $X and $Y
+cursor movement characters for the current locale. For further details, refer
+to the article System Classes for National Language Support.
+$Y with Terminal I/O
+The following table shows the effects of different characters on $Y.
+
+      Echoed Character         ASCII Code  Effect on $Y
+
+<FORM FEED>                    12          $Y=0
+
+<RETURN>                       13          $Y=$Y
+
+<LINE FEED>                    10          $Y=$Y+1
+
+<BACKSPACE>                    8           $Y=$Y
+
+<TAB>                          9           $Y=$Y
+
+Any printable ASCII character  32-126      $Y=$Y
+
+The S(ecret) protocol of the OPEN and USE commands turns off echoing. It also
+prevents $Y from being changed during input, so it indicates the true cursor
+position.
+A WRITE $CHAR() that changes vertical position also changes $Y. A WRITE * that
+changes vertical position does not change $Y. For example, 
+WRITE $Y,$CHAR(10),$Y performs the line feed and increments $Y. In contrast, 
+WRITE $Y,*10,$Y performs the line feed but does not increment $Y. (See the
+WRITE command for further details.)
+Because WRITE * does not change $Y, you can send a control sequence to your
+terminal and $Y will still reflect the true cursor position. Since some control
+sequences do move the cursor, you can use the SET command to set $Y directly.
+For example, the following commands move the cursor to column 20 and line 10 on
+a VT100-type terminal and set $X and $Y accordingly:
+
+  SET dy=10,dx=20
+  WRITE *27,*91,dy+1,*59,dx+1,*72
+  SET $Y=dy,$X=dx
+ANSI standard control sequences (such as escape sequences) that the device acts
+on but does not output can produce a discrepancy between the $X and $Y values
+and the true cursor position. To avoid this problem, use the WRITE * statement
+and specify the ASCII value of each character in the string. For example,
+instead of using the following code:
+
+   WRITE $CHAR(27)_"[1m"
+use this equivalent form:
+
+   WRITE *27,*91,*49,*109
+As a rule, after any escape sequence that explicitly moves the cursor, you
+should update $X and $Y to reflect the actual cursor position.
+See Also
+
+  • $X special variable
+  • I/O Devices and Commands in Caché I/O Device Guide
+  • Terminal I/O in Caché I/O Device Guide
+  • Interprocess Communication in Caché I/O Device Guide
+
+
+ #}}}
+*EOT*  #{{{
+
+                              Caché sets the Tape Mark bit when it encounters a
+                              tape mark on Read, Read Block, Forward Space or
+14   16384  Y     Tape Mark   Backspace. This sets the Error Summary bit and
+                              traps to $ZTRAP on Read, Read Label, and Read
+                              Block
+
+15   32768  Y     Tape Not     
+                  Ready
+
+Some bits indicate error conditions, while other bits indicate conditions that
+do not necessarily produce an error. To monitor these non-error conditions,
+your program must test the appropriate bit of $ZA after every magnetic tape
+operation. For example, if your program might write beyond the end of the tape,
+it must check bit 10 (End of Tape).
+To test a bit, integer divide $ZA by the value listed for that bit in the table
+and perform a modulo 2 operation. For example, the following command checks if
+bit 14 (Tape Mark) is set:
+
+   USE 47 IF $ZA\16384#2 {DO Endfile}
+
+where 16384 equals 2 to the 14th power and #2 indicates the modulo 2 operation.
+Since any number to the 0 power equals 1, you do not need a divisor to check
+bit 0 (Logical Error). For example:
+
+   USE 47 GOTO Logerr:$ZA#2
+
+See Also
+
+  • READ command
+  • $ZUTIL(68,15) Modem Disconnect Detection function
+  • $ZB special variable
+  • $ZTRAP special variable
+  • I/O Devices and Commands in Caché I/O Device Guide
+  • Terminal I/O in Caché I/O Device Guide
+  • Magnetic Tape I/O in Caché I/O Device Guide
+  • Sequential File I/O in Caché I/O Device Guide
+
+
+ #}}}
+*$ZB*  #{{{
+
+Contains status information for the current I/O device.
+Synopsis
+
+$ZB
+
+Description
+$ZB contains status information specific to the current I/O device following a 
+READ operation.
+
+  • When reading from a terminal, sequential file, or other character-based I/O
+    device, $ZB contains the terminating character of the read operation. This
+    can be a terminator character (such as <RETURN>), the final character of
+    the input data if the read operation does not require a terminator
+    character, or the null string if a terminator character is required but was
+    not received (for example, if the read operation timed out).
+  • When reading from a block-based I/O device, such as magnetic tape, $ZB
+    contains the number of bytes remaining in the I/O buffer. $ZB also contains
+    the number of bytes in the I/O buffer when writing to magnetic tape.
+
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+$ZB and $KEY can both be used to return the READ termination character when
+reading from a character-based device or file. For character-based reads, these
+two special variables are very similar, but not identical. For block-based
+reads and writes (such as magnetic tape) use $ZB; $KEY does not provide support
+for block-based read and write operations. See $KEY for further details.
+Notes
+Reading from a Terminal or File
+$ZB contains the terminating character (or character sequence) from a read
+operation involving a terminal, sequential file, or other character-based I/O
+device. $ZB can contain any of the following:
+
+  • A termination character, such as a carriage return.
+  • An escape sequence (up to 16 characters).
+  • The nth character in a fixed-length READ x#n. (In this case, the $KEY
+    special variable returns the null string.)
+  • The single character of READ *x.
+  • A null string ("") after a timed READ expires.
+
+For example, consider the following variable-length read with a five-second
+timeout:
+
+Zbread
+  READ !,"Enter number:",num:5
+  WRITE !, num
+  WRITE !, $ASCII($ZB)
+  QUIT
+
+If the user types 123 at the READ prompt and presses <RETURN>, Caché stores 123
+in the num variable and stores <RETURN> (ASCII decimal code 13, hexadecimal 0D)
+in $ZB. If the READ times out, $ZB contains the null string; $ASCII("") returns
+a value of  1.
+$ZB on the Command Line
+When issuing commands interactively from the Caché Terminal command line, you
+press <RETURN> to issue each command line. The $ZB and $KEY special variables
+record this command line terminator character. Therefore, when using $ZB or 
+$KEY to return the termination status of a read operation, you must set a
+variable as part of the same command line.
+For example, if you issue the command:
+
+>READ x:10
+
+from the command line, then check $ZB it will not contain the results of the
+read operation; it will contain the <RETURN> character that executed the
+command line. To return the results of the read operation, set a local variable
+with $ZB in the same command line, as follows:
+
+>READ x:10 SET rzb=$ZB
+
+This preserves the value of $ZB set by the read operation. To display this read
+operation value, issue either of the following command line statements:
+
+>WRITE $ASCII(rzb)
+   ; returns -1 for null string (time out),
+   ; returns ASCII decimal value for terminator character
+>ZZDUMP rkey
+   ; returns blank line for null string (time out)
+   ; returns hexadecimal value for terminator character
+
+$ZB with Magnetic Tape I/O
+$ZB contains status information about the driver buffer. Specifically, it
+contains the number of bytes that remain in the magnetic tape drive’s internal
+buffer.
+Immediately after you read a block, Caché sets $ZB to that block’s size. As you
+transfer logical records from the buffer to variables (with READ commands),
+Caché decrements the $ZB value until it reaches 0 and the next block read
+occurs.
+When you write to tape, $ZB shows the available space (in bytes) remaining in
+the driver’s internal buffer. Immediately after you write a block, Caché sets 
+$ZB to the buffer size specified with the OPEN command. As you transfer logical
+records from Caché variables into the buffer (with WRITE commands), Caché
+decrements the $ZB number until it reaches 0 and the block write occurs.
+Most magnetic tape programs need not be concerned with $ZB unless they must
+deal with unusual formats and variable length blocks.
+To monitor magnetic tape operations, your program can test the appropriate bit
+of $ZA after each read and write.
+The following code checks both $ZA and $ZB after each magnetic tape read, and
+sets MTERR when either of these variables indicates an error. It also sets 
+$ZTRAP when a magnetic tape error occurs.
+
+   ; $$MTIN(mtdev) = the next logical record from magtape
+   ; device mtdev.
+   ; Also returns za=$ZA and zb=$ZB
+   ; On a magtape error, mterr=1 and $$MTIN(mtdev)=""
+   ; Expects the caller to have set $ZT to trap other
+   ; errors.
+MTIN(io)
+  NEW rec,curdev
+  SET mterr=0,curdev=$IO,$ZT="MTIERR"
+  USE io
+  READ rec
+MTIEXIT
+  SET za=$ZA,zb=$ZB
+  USE curdev
+  QUIT rec
+MTIERR
+  IF $ZERROR["MAGTAPE" {
+        USE curdev
+        ZQUIT 1
+        GOTO @$ZTRAP }
+     ; Use caller's error trap.
+  ELSE {
+       SET $ZTRAP="",mterr=1,rec=""
+       GOTO MTIEXIT }
+
+If a terminator completes a READ, Caché mode returns the terminator as a string
+in $ZB.
+If an escape sequence terminates a READ, Caché mode returns the ASCII escape
+sequence as a string in $ZB.
+See Also
+
+  • READ command
+  • WRITE command
+  • $KEY special variable
+  • $ZA special variable
+  • $ZEOF special variable
+  • I/O Devices and Commands in Caché I/O Device Guide
+  • Terminal I/O in Caché I/O Device Guide
+  • Magnetic Tape I/O in Caché I/O Device Guide
+  • Sequential File I/O in Caché I/O Device Guide
+  • The Spool Device in Caché I/O Device Guide
+
+
+ #}}}
+*$ZCHILD*  #{{{
+
+Contains the ID of the last child process.
+Synopsis
+
+$ZCHILD
+$ZC
+
+Description
+$ZCHILD contains the ID of the last child process that the current process
+created with the JOB command. If your process has not used JOB to create a
+child process, $ZCHILD returns 0 (zero).
+In MSM language mode, the $ZC special variable (spelled as shown) has a
+different use. It is used for determining end-of-file in sequential file reads.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+Notes
+$ZCHILD and the Successful Starting of Jobs
+$ZCHILD being set does not mean that the job was successfully started. It only
+means that the process was created and the parameters were passed successfully.
+For example, if you use JOB to spawn a routine that does not exist, both $TEST
+and $ZCHILD report that the JOB command succeeded, although that new job
+immediately dies with a <NOROUTINE> error.
+$ZC in MSM Language Mode
+MSM language mode supports a special use of the $ZC special variable.
+If you have set the current language mode to MSM using $ZUTIL(55,8), the $ZC
+special variable is set during sequential file reads. This provides
+compatibility with the MSM $ZC variable. (In all other language modes, $ZC is
+not set during file reads; $ZC is an abbreviation for $ZCHILD and has a
+completely different functionality.)
+In MSM language mode, a successful sequential file read sets $ZC=0.
+In MSM language mode, an end-of-file condition sets $ZC= 1 (negative 1). An
+<ENDOFFILE> error does not occur.
+However, Caché $ZC is not identical to the MSM $ZC:
+MSM sets its $ZC= 1 (negative 1) if the last line of the file is not terminated
+with the delimiter character(s). Caché does not check for delimiter characters;
+it sets $ZC=0 instead of  1 in this case.
+MSM sets its $ZC=1 if an I/O error occurs during a read. Caché does not support
+this functionality; instead, Caché issues a <READ> error.
+See Also
+Child processes:
+
+  • JOB command
+  • ^$JOB structured system variable
+  • $JOB special variable
+  • $TEST special variable
+  • $ZPARENT special variable
+
+MSM language mode:
+
+  • $ZUTIL(55) Language Mode Switch function
+  • $ZPOS special variable
+  • $ZEOF special variable
+  • Sequential File I/O in Caché I/O Device Guide
+
+
+ #}}}
+*$ZEOF*  #{{{
+
+Contains flag indicating whether end-of-file has been reached.
+Synopsis
+
+$ZEOF
+
+Description
+Following each sequential file READ, Caché sets the $ZEOF special variable to
+indicate whether or not the end of the file has been reached. This special
+variable is provided for compatibility with MSM routines that use $ZC device
+status checking.
+$ZEOF can be set to the following values:
+ 1 End-of-file reached
+0 Not at end-of-file
+To use this feature, you must disable the <ENDOFFILE> error for sequential
+files.
+
+  • To disable this for a process, call $ZUTIL(68,40,1) for that process.
+  • To disable this system-wide, either call $ZUTIL(69,40,1), or go to the
+    System Management Portal, select [Home] > [Configuration] > [Compatibility
+    Settings]. View and edit the current setting of SetZEOF. This option
+    controls the behavior when Caché encounters an unexpected end-of-file when
+    reading a sequential file. When set to  true , Caché sets the $ZEOF special
+    variable to indicate that you have reached the end of the file. When set to
+     false , Caché issues an <ENDOFFILE> error. The default is  false .
+
+When the end of a file is reached, rather than issuing an <ENDOFFILE> error,
+the READ will return a null string, set $ZPOS=null and set $ZEOF= 1.
+$ZEOF does not support all of the features of the MSM $ZC function. Unlike $ZC,
+$ZEOF does not identify file delimiter characters or I/O errors. $ZEOF does not
+check for proper file termination with file delimiter characters. I/O errors
+are detected by a READ command error, not by $ZEOF.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+See Also
+
+  • $ZUTIL(68,40) End-of-File Handling for Sequential Files function
+  • $ZUTIL(69,40) End-of-File Handling for Sequential Files function
+  • $ZCHILD special variable
+  • $ZPOS special variable
+  • Sequential File I/O in Caché I/O Device Guide
+
+
+ #}}}
+*$ZERROR*  #{{{
+
+Contains the name and location of the last error.
+Synopsis
+
+$ZERROR
+$ZE
+
+Description
+$ZERROR contains the name of the most recent error, the location of the most
+recent error (where applicable), and (for certain error codes) additional
+information about what caused the error. $ZERROR always contains the most
+recent error for the appropriate language mode.
+The string contained in $ZERROR can be in any of the following forms:
+
+<error>
+<error>entryref
+<error> info
+<error>entryref info
+
+<error>   The error name. The error name is always returned in all capital
+          letters, enclosed in angle brackets. It may contain blank spaces.
+
+          A reference to the line of code in which the error occurred. This
+          consists of the routine name and line offset within that routine,
+          followed by a ^ and the program name. This entryref follows
+entryref  immediately after the closing angle bracket of the error name. When
+          invoking $ZERROR from Caché Terminal, this entryref information is
+          not meaningful, and is therefore not returned
+          A reference to the routine most recently loaded into the routine
+          buffer using ZLOAD.
+
+          Additional information specific to certain error types (see table
+info      below). This information is separated from <error> or <error>entryref
+          by a blank space. If there are multiple components to info, they are
+          separated by a comma.
+
+For example, a program (named zerrortest) contains the following routine (named
+ZerrorMain) which attempts to write the contents of FRED, an undefined local
+variable:
+
+ZerrorMain
+  WRITE !, $ZERROR
+  WRITE FRED
+  WRITE !, $ZERROR
+  QUIT
+
+In the above example, the first $ZERROR contains a null string (""), because no
+errors have occurred. The second $ZERROR contains <UNDEFINED> *FRED, specifying
+the name of the error and additional information specific to that type of
+error. In this case, the information is the name of the undefined local
+variable FRED.
+Additional Information For Some Errors
+When certain types of errors occurs, Caché returns the error in the following
+format:
+
+<ERRORCODE> info
+
+The info component contains additional information about what caused the error.
+The following table gives a list of errors that include additional info and the
+format of that information. The error code is separated from the info component
+by a space character.
+
+Error Code                             Info Component
+
+             The name of the undefined variable (including any subscripts
+<UNDEFINED>  used). This may be a local variable, a process-private global, or
+             a global. Local variable names are prefixed by an asterisk.
+
+<SUBSCRIPT>  The subscript reference in error.
+
+<NOROUTINE>  Prefixed by an asterisk, the referenced routine name.
+
+<CLASS DOES  Prefixed by an asterisk, the referenced class name.
+NOT EXIST>
+
+<PROPERTY    Prefixed by an asterisk, the name of the referenced property,
+DOES NOT     followed by a comma separator and the class name it is supposed to
+EXIST>       be in.
+
+<METHOD      Prefixed by an asterisk, the name of the method invoked, followed
+DOES NOT     by a comma separator and the class name it is supposed to be in.
+EXIST>
+
+<PROTECT>    The name of the global referenced and the name of the directory
+             containing it, separated by a comma.
+
+The names of variables local to routines (or methods), as well as the names of
+undefined routines, classes, properties, and methods, are prefixed with an
+asterisk (*). Process-private globals are identified by their ^|| prefix.
+Global variables are identified by their ^ (caret) prefix. Class names are
+presented in their %-prefix form.
+The following examples show additional error information specifying the cause
+of the error. In each case, the specified item does not exist. Note that the 
+info component of the generated error is separated from the error name by a
+blank space. The asterisk (*) indicates a local variable, a class, a property,
+or a method. The caret (^) indicates a global, and ^|| indicates a
+process-private global.
+Examples of <UNDEFINED> errors:
+
+WRITE x                                     // undefined local variable
+<UNDEFINED> *x
+WRITE abc(2)                            // undefined subscripted local variable
+<UNDEFINED> *abc(2)
+WRITE ^xyz(1,1)                       // undefined global
+<UNDEFINED> ^xyz(1,1)
+WRITE ^|"samples"|xyz(1,2)     // undefined global with namespace specification
+<UNDEFINED> ^xyz(1,2)
+WRITE ^||ppg(1)                       // undefined process-private global
+<UNDEFINED> ^||ppg(1)
+WRITE ^|"^"|ppg(2)                 // undefined process-private global
+<UNDEFINED> ^||ppg(2)
+
+Example of a <SUBSCRIPT> error:
+
+  SET $ZUTIL(68,1,0)
+  WRITE ^abc("")
+<SUBSCRIPT> ^abc("")
+
+Examples of <NOROUTINE> errors:
+
+  DO ^NotThere
+<NOROUTINE> *NotThere
+  JOB ^NotThere
+<NOROUTINE> *NotThere
+  GOTO ^NotThere
+<NOROUTINE> *NotThere
+
+Examples of object errors:
+
+WRITE $SYSTEM.XXQL.MyMethod()
+<CLASS DOES NOT EXIST> *%SYSTEM.XXQL
+WRITE $SYSTEM.SQL.MyMethod()
+<METHOD DOES NOT EXIST> *MyMethod,%SYSTEM.SQL
+<PROPERTY DOES NOT EXIST> *SomeProp,Package.Classname
+
+Example of a <PROTECT> error:
+
+  SET ^a="fruit"
+  SET ^a(1)="apple"
+  SET x=$ZUTIL(68,28,1)   // disable global root node kills
+  KILL ^a(1)
+  KILL ^a                             // attempting to kill a global root node
+<PROTECT> ^a,c:\InterSystems\Cache\mgr\user\
+
+Pre-5.1 Error Handling Code
+A consequence of adding an info component to these error codes for Caché 5.1
+and subsequent releases is that pre-5.1 error handling routines that made
+assumptions about the format of the string in $ZERROR may require redesign to
+work as before. For example, the following will no longer work in version 5.1:
+
+  WRITE "Error line: ", $PIECE($ZERROR, ">", 2)
+
+and should be changed to be something like:
+
+  WRITE "Error line: ", $PIECE($PIECE($ZERROR, ">", 2), " ", 1)
+
+Notes
+ZLOAD and Error Messages
+Following a ZLOAD operation, the name of the routine loaded into the routine
+buffer appears in the entryref portion of subsequent error messages. This
+persists for the duration of the process, or until removed using ZREMOVE, or
+removed or replaced by another ZLOAD. The following example shows this display
+of the contents of the routine buffer:
+
+SAMPLES>ZLOAD Sample.Person.1
+SAMPLES>WRITE 6/0
+<DIVIDE>^Sample.Person.1
+SAMPLES>WRITE fred
+<UNDEFINED>^Sample.Person.1 *fred
+SAMPLES>WRITE ^fred
+<UNDEFINED>^Sample.Person.1 ^fred
+SAMPLES>ZNAME "USER"
+USER>WRITE 7/0
+<DIVIDE>^Sample.Person.1
+USER>ZREMOVE
+USER>WRITE ^fred
+<UNDEFINED> ^fred
+
+$ZERROR and the Program Stack
+The <error> portion of the $ZERROR string contains the most recent error
+message. The contents of the entryref portion of the $ZERROR string reflect the
+stack level of the most recent error. The following terminal session attempts
+to call the nonsense command GOBBLEDEGOOK, resulting in a <SYNTAX> error. It
+also runs ZerrorMain (specified above), resulting in the $ZERROR value
+<UNDEFINED>. Subsequent $ZERROR values during this terminal session reflect
+this program call, as shown in the following:
+
+SAMPLES>gobbledegook
+SAMPLES>WRITE $ZERROR
+<SYNTAX>
+SAMPLES>DO ^zerrortest
+SAMPLES>WRITE $ZERROR
+<UNDEFINED>ZerrorMain+2^zerrortest *FRED
+SAMPLES 2d0>gobbledegook
+SAMPLES 2d0>WRITE $ZERROR
+<SYNTAX>^zerrortest
+SAMPLES 2d0>QUIT
+SAMPLES>WRITE $ZERROR
+<SYNTAX>^zerrortest
+SAMPLES>gobbledegook
+SAMPLES>WRITE $ZERROR
+<SYNTAX>
+
+$ZERROR Actions when $ZTRAP is Set
+When an error occurs and $ZTRAP is set, Caché returns the error message in 
+$ZERROR and branches to the error-trap handler specified for $ZTRAP. (For a
+list of the possible error texts, refer to System Error Messages in 
+Caché Error Reference.)
+Setting $ZERROR
+You can set $ZERROR with the SET command to a value of up to 128 characters
+only in Caché mode.
+See Also
+
+  • ZTRAP command
+  • $ECODE special variable
+  • $ZTRAP special variable
+  • Error Handling chapter in Using Caché ObjectScript
+  • System Error Messages in Caché Error Reference
+
+
+ #}}}
+*$ZHOROLOG*  #{{{
+
+Contains the number of seconds elapsed since Caché startup.
+Synopsis
+
+$ZHOROLOG
+$ZH
+
+Description
+$ZHOROLOG contains the number of seconds that have elapsed since the most
+recent Caché startup. This is a count, which is independent of clock changes
+and day boundaries. The value is expressed as a floating point number,
+indicating seconds and fractions of a second. The number of decimal digits is
+platform-dependent. $ZHOROLOG truncates trailing zeros in this fractional
+portion.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+Note:
+Because of a limitation in the Windows operating system, putting your Windows
+system into hibernate or standby mode may cause $ZHOROLOG to return
+unpredictable values. This problem does not affect $HOROLOG or $ZTIMESTAMP
+values.
+Examples
+This example outputs the current $ZHOROLOG value.
+
+   WRITE $ZHOROLOG
+returns a value such as: 1036526.244932.
+The following example shows how you might use $ZHOROLOG to time events and do
+benchmarks. This example times an application through 100 executions, then
+finds the average runtime.
+
+Cycletime
+  SET start=$ZHOROLOG
+    FOR i=1:1:100 { DO Myapp }
+  SET end=$ZHOROLOG
+  WRITE !,"Average run was ",(end-start)/100," seconds."
+   QUIT
+Myapp
+   WRITE !,"executing my application"
+  ; application code goes here
+   QUIT
+See Also
+
+  • $ZUTIL(188) Local Date/Time with Fractional Seconds function
+  • $HOROLOG special variable
+  • $ZTIMESTAMP special variable
+
+
+ #}}}
+*$ZIO*  #{{{
+
+Contains information about the current terminal I/O device.
+Synopsis
+
+$ZIO
+$ZI
+
+Description
+$ZIO contains information about the current I/O device.
+For a terminal device that is a Caché terminal, $ZIO contains the string  TRM: 
+. For a terminal device that is an MS-DOS console, $ZIO contains the string  
+CON: .
+If the current terminal device is connected remotely, $ZIO contains information
+about the remote connection.
+For a terminal device connected to a LAT, $ZIO contains the following:
+server/port
+
+server  The LAT server name
+
+port    The LAT port name
+
+For a terminal device connected through TELNET, $ZIO contains the following:
+host/port
+
+      The remote host IP address, in either IPv4 format:nnn.nnn.nnn.nnn, where 
+      nnn is a decimal number, or in IPv6 format: h:h:h:h:h:h:h:h, where h is a
+host  hexadecimal number. Further details on IPv4 and IPv6 formats can be found
+      in the  Use of IPv6 Addressing section of the 
+      InterSystems Product Miscellany article.
+
+port  The remote IP port number.
+
+If the current device is not a terminal:
+
+  • If a file, $ZIO contains the full canonical pathname of the file.
+  • If not a file, $ZIO contains the null string.
+
+The following example returns the current device information:
+
+   SET x=$CASE($ZIO,"TRM:":"a terminal",
+               "CON:":"a console",
+               "":"neither terminal nor file")
+   WRITE "The current device is ",x
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+See Also
+
+  • $IO special variable
+  • $PRINCIPAL special variable
+  • I/O Devices and Commands in Caché I/O Device Guide
+  • Terminal I/O in Caché I/O Device Guide
+
+
+ #}}}
+*$ZJOB*  #{{{
+
+Contains job status information.
+Synopsis
+
+$ZJOB
+$ZJ
+
+Description
+$ZJOB contains a number in which each bit represents one particular aspect of
+the job’s status. To test $ZJOB, reference it as $ZJOB\x#2, where x is a value
+used to test the bit. The following table shows the layout of the bits, their
+test values, and meanings.
+
+Bit   Value                               Meaning
+
+      1      Job started in programmer mode
+1
+      0      Job started in application mode
+
+      1      Job started by the JOB command
+2
+      0      Job started by signing on either in application or programmer mode
+
+      1      <INTERRUPT> enabled for all terminal lines
+4
+      0      <INTERRUPT> disabled except for terminal lines for which
+             <INTERRUPT> has been explicitly enabled by OPEN or USE commands
+
+      1      <INTERRUPT> received and pending
+8
+      0      <INTERRUPT> not received. The value 8 is cleared by the OPEN and 
+             USE commands and by an error trap caused by a <CTRL C>
+
+      1      Journaling is disabled regardless of other conditions.
+1024
+      0      Journaling is enabled for this job if other conditions indicate
+             journaling.
+
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+See Also
+
+  • JOB command
+  • ^$JOB structured system variable
+  • $JOB special variable
+  • $ZCHILD special variable
+  • $ZPARENT special variable
+
+
+ #}}}
+*$ZMODE*  #{{{
+
+Contains current I/O device OPEN parameters.
+Synopsis
+
+$ZMODE
+
+Description
+$ZMODE contains the parameters specified with the OPEN or USE command for the
+current device. The string returned contains the parameters used to open the
+current I/O device in canonical form. These parameter values are separated by
+backslash delimiters. Open parameters like "M" on TCP/IP IO are canonicalized
+to "PSTE". The "Y" and "K" parameter values are always placed last.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+Examples
+The following example sets parameters for the current device with the USE
+command. It checks the current parameters with $ZMODE before and after the USE
+command. To test whether a specific parameter was set, this example uses the 
+$PIECE function with the backslash delimiter, and tests for a value using the
+Contains operator ([). (See Operators in Using Caché ObjectScript.):
+
+Zmodetest
+  WRITE !, $ZMODE
+    IF $PIECE($ZMODE,"\\")["S" {
+      WRITE !, "S is set"  }
+    ELSE {WRITE !, "S is not set" }
+  USE 0:("":"IS":$CHAR(13,10))
+  WRITE !, $ZMODE
+    IF $PIECE($ZMODE,"\\")["S" {
+      WRITE !, "S is set"  }
+    ELSE {WRITE !, "S is not set" }
+  QUIT
+
+SAMPLES>DO ^zmodetest
+RY\Latin1\K\UTF8\
+S is not set
+SIRY\Latin1\K\UTF8\
+S is set
+See Also
+
+  • OPEN command
+  • USE command
+  • $IO special variable
+  • I/O Devices and Commands in Caché I/O Device Guide
+
+
+ #}}}
+*$ZNAME_var*  #{{{
+
+Contains the current routine name.
+Synopsis
+
+$ZNAME
+$ZN
+
+Description
+$ZNAME contains the routine name of the current process. Routine names are
+case-sensitive. If no routine is currently executing, $ZNAME contains a null
+string.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+To return the routine name for a specified process, use a SYS.Process class
+method, as shown in the following example:
+
+   ZNSPACE "%SYS"
+   WRITE ##class(SYS.Process).%OpenId($JOB).RoutineGet()
+This example requires that UnknownUser have assigned the %DB_CACHESYS role.
+The $ZNAME value can be set by the any of the following commands:
+
+  • ZLOAD command
+  • ZSAVE command
+  • Argumentless ZREMOVE command (sets to a null string)
+  • DO command
+  • GOTO command
+
+See Also
+
+  • $ZUTIL(67,5) Return the routine name of a specified process legacy function
+
+
+ #}}}
+*$ZNSPACE*  #{{{
+
+Contains the current namespace name.
+Synopsis
+
+$ZNSPACE
+
+Description
+$ZNSPACE contains the name of the current namespace. By setting $ZNSPACE, you
+can change the current namespace.
+To obtain the current namespace name:
+
+   WRITE $ZNSPACE
+You can also obtain the name of the current namespace by invoking a system
+method, as follows:
+
+   WRITE $SYSTEM.SYS.NameSpace()
+Refer to the %SYSTEM.SYS section of the Caché Class Reference for further
+details.
+You can change the current namespace using a ZNSPACE command, a SET $ZNSPACE
+command, or the $ZUTIL(5) function. For UNIX and OpenVMS, the default namespace
+is established as a System Configuration option. For Windows systems, it is set
+using a command-line start-up option.
+You can use the SET command to change the value of $ZNSPACE. This sets the
+current namespace for the process. Specify the new namespace as a quoted
+string. You can specify an explicit namespace ("namespace") or an implied
+namespace ("^system^dir" or "^^dir").
+Namespace names are not case-sensitive. Caché always displays explicit
+namespace names in all uppercase letters, and implied namespace names in all
+lowercase letters.
+If you specify the current namespace, SET $ZNSPACE performs no operation and
+returns no error. If you specify an undefined namespace, SET $ZNSPACE generates
+a <NAMESPACE> error. You can test whether a namespace is defined by using
+$ZUTIL(90,10).
+This use of SET $ZNSPACE is identical to the ZNSPACE command.
+To obtain the namespace name of a specified process, use a SYS.Process class
+method, as shown in the following example:
+
+   ZNSPACE "%SYS"
+   WRITE ##class(SYS.Process).%OpenId($JOB).NameSpaceGet()
+This example requires that UnknownUser have assigned the %DB_CACHESYS role.
+Example
+In the following example, if the current namespace is not USER, a SET $ZNSPACE
+command changes the current namespace to USER. Note that because of the IF
+test, the namespace must be specified in all uppercase letters.
+
+   SET ns="USER"
+   IF $ZNSPACE=ns {
+     WRITE !,"Namespace already was ",$ZNSPACE }
+   ELSEIF 1=$ZUTIL(90,10,ns) {
+     WRITE !,"Namespace was ",$ZNSPACE
+     SET $ZNSPACE=ns
+     WRITE !,"Set namespace to ",$ZNSPACE }
+   ELSE { WRITE !,ns," is not a defined namespace" }
+   QUIT
+This example requires that UnknownUser have assigned the %DB_CACHESYS and the
+%DB_USER roles.
+See Also
+
+  • SET command
+  • ZNSPACE command
+  • Configuring Namespaces in Caché System Administration Guide
+
+
+ #}}}
+*$ZORDER*  #{{{
+
+Contains the value of the next global node.
+Synopsis
+
+$ZORDER
+$ZO
+
+Description
+$ZORDER contains the value of the next global node (in $QUERY sequence, not 
+$ORDER sequence), after the current global reference. If there is no next
+global node, accessing $ZORDER results in an <UNDEFINED> error, indicating the 
+last global successfully accessed by $ZORDER. For further details on
+<UNDEFINED> errors, refer to $ZERROR.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+Example
+The following example uses a WHILE loop to repeatedly call $ZORDER to traverse
+a series of subscript nodes:
+
+  SET ^||a="groceries"
+  SET ^||a(1)="fruit"
+  SET ^||a(1,1)="apples"
+  SET ^||a(1,2)="oranges"
+  SET ^||a(3)="nuts"
+  SET ^||a(3,1)="peanuts"
+  SET ^||a(2)="vegetables"
+  SET ^||a(2,1)="lettuce"
+  SET ^||a(2,2)="tomatoes"
+  SET ^||a(2,1,1)="iceberg"
+  SET ^||a(2,1,2)="romaine"
+  SET $ZERROR="unset"
+  WRITE !,"last referenced: ",^||a(1,1)
+  WHILE $ZERROR="unset" {
+      WRITE !,$ZORDER }
+  QUIT
+The above example starts with the last-referenced global (in this case,
+process-private globals): ^||a(1,1). $ZORDER does not contain the value of ^||a
+(1,1), but works forward from that point. Calls to $ZORDER traverse the
+subscript tree nodes in the following order: (1,2), (2), (2,1), (2,1,1),
+(2,1,2), (2,2), (3), (3,1). Each WRITE $ZORDER displays the data value in each
+successive node. It then runs out of nodes and generates the following error: 
+<UNDEFINED> ^||a(3,1). Note that ^||a(3,1) is not undefined; it is specified
+because $ZORDER could not find another global after this one.
+See Also
+
+  • $ORDER function
+  • $QUERY function
+  • $ZORDER function
+  • $ZERROR special variable
+
+
+ #}}}
+*$ZPARENT*  #{{{
+
+Contains the ID of the parent process of the current process.
+Synopsis
+
+$ZPARENT
+$ZP
+
+Description
+$ZPARENT contains the ID of the parent process that created the current process
+with the JOB command. If the current process was not created with the JOB
+command, $ZPARENT contains 0 (zero).
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+See Also
+
+  • JOB command
+  • $ZCHILD special variable
+  • $JOB special variable
+
+
+ #}}}
+*$ZPI*  #{{{
+
+Contains the value of pi.
+Synopsis
+
+$ZPI
+
+Description
+$ZPI contains the value of the numeric constant Pi to eighteen decimal places
+(3.141592653589793238).
+This value is frequently used with trigonometric functions, such as the sine
+function $ZSIN.
+
+ #}}}
+*$ZPOS*  #{{{
+
+Contains the current file position during the reading of a sequential file.
+Synopsis
+
+$ZPOS
+
+Description
+$ZPOS contains the current file position during sequential file reads. If no
+sequential file read is in progress, $ZPOS contains 0 (zero). The current file
+position can be set using the $ZSEEK function.
+By default, Caché handles an end-of-file on a sequential file by issuing an
+<ENDOFFILE> error; it does not set $ZPOS. You can configure this end-of-file
+behavior in a manner compatible with MSM. In this case, when an end-of-file is
+encountered, Caché does not issue an error, but sets $ZPOS to "" (the null
+string), and sets $ZEOF to -1.
+To configure end-of-file handling, go to the System Management Portal, select
+[Home] > [Configuration] > [Compatibility Settings]. View and edit the current
+setting of SetZEOF. When set to  true , Caché sets $ZPOS to "" (the null
+string), and sets $ZEOF to -1. The default is  false , You can also establish
+this behavior system-wide by invoking $ZUTIL(69,40,1) or on the current process
+by invoking $ZUTIL(68,40,1).
+$ZPOS is not supported on OpenVMS systems.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+See Also
+
+  • READ command
+  • $ZSEEK function
+  • $ZUTIL(68,40) End-of-File Handling for Sequential Files function
+  • $ZUTIL(69,40) End-of-File Handling for Sequential Files function
+  • $ZEOF special variable
+  • Sequential File I/O in Caché I/O Device Guide
+
+
+ #}}}
+*$ZREFERENCE*  #{{{
+
+Contains the current global reference.
+Synopsis
+
+$ZREFERENCE
+$ZR
+
+Description
+$ZREFERENCE contains the name and subscript(s) of the last global reference.
+This is known as the naked indicator.
+The last global reference can be either a global (^myglob) or a process-private
+global (^||myppg). In this description of $ZREFERENCE, the word  global refers
+to both types of variables.
+The last global reference is the global most recently referred to by a command
+or a function. Because ObjectScript performs operations in left-to-right order,
+the last global reference is always the rightmost global. When a command or
+function takes multiple arguments, the global specified in the rightmost
+argument is the last global reference. When an argument contains multiple
+global references, the rightmost specified global is the last global reference.
+This strict left-to-right order holds true even if parentheses are used to
+define the order of operations.
+Caché updates $ZREFERENCE when an explicit global reference is issued. Invoking
+an expression (such as a local variable) that evaluates to a global reference
+does not update $ZREFERENCE.
+$ZREFERENCE contains the most recent global reference, even if this global
+reference was not successful. When a command references an undefined global,
+issuing an <UNDEFINED> error, Caché updates $ZREFERENCE to that global
+reference, just as if the global were defined.
+$ZREFERENCE often contains the most recent global reference, even if the
+command execution was not successful. $ZREFERENCE is updated as each global is
+referenced. For example, a command issuing a <DIVIDE> error (attempting to
+divide a number by 0) updates $ZREFERENCE to the last global referenced in the
+command before the error occurred. However, a <SYNTAX> error does not update 
+$ZREFERENCE.
+Long Global Names
+If a global name is longer than 31 characters (excluding global prefix
+character(s), such as ^), $ZREFERENCE returns the global name shortened to 31
+characters. For further information on the handling of long global names, refer
+to the Global Variables section of the  Variables chapter of 
+Using Caché ObjectScript.
+Naked Global Reference
+If the last global reference was a naked global reference, $ZREFERENCE contains
+the external, readable, full form of the current naked global reference. This
+is demonstrated in the following example:
+
+  SET ^MyData(1)="fruit"
+  SET ^MyData(1,1)="apples" ; Full global reference
+  SET ^(2)="oranges"        ; Naked global reference,
+                            ; implicitly ^MyData(1,2)
+  WRITE !,$ZREFERENCE       ; Returns "^MyData(1,2)"
+For further details on naked global references, see Using Caché
+Multidimensional Storage (Globals) in Using Caché Globals.
+Extended Global Reference
+Extended global reference is used to reference a global that is in a namespace
+other than the current namespace. If a command references a global variable
+using an extended global reference, the $ZREFERENCE value contains that
+extended global reference. Caché returns an extended global reference in the
+following circumstances:
+
+  • If the last global reference uses an extended reference to refer to a
+    global in another namespace.
+  • If the last global reference uses an extended reference to refer to a
+    global in the current namespace.
+  • If the last global reference is a remote reference (a global on a remote
+    system).
+
+For further details on global subscripts and extended global references, see
+Global Structure in Using Caché Globals.
+Operations that Update $ZREFERENCE
+The $ZREFERENCE special variable is initialized to the null string ("").
+Changing the current namespace resets $ZREFERENCE to the null string.
+The following operations set $ZREFERENCE to the most recently referenced
+global:
+
+  • A command or function that uses a global as an argument. If it uses
+    multiple globals, $ZREFERENCE is set to the rightmost occurrence of a
+    global. (Note, however, the exception of $ORDER.)
+  • A command that uses a global as a postconditional expression.
+  • Following a ZWRITE, Caché sets $ZREFERENCE to the last listed subscript
+    version of the specified global reference.
+  • A command or function that references an undefined global, and either
+    generates an <UNDEFINED> error, or, in the case of $INCREMENT, defines the
+    global.
+
+Setting $ZREFERENCE
+You can set this special variable using the SET command, as follows:
+
+  • Set to the null string (""). Doing so deletes the naked indicator. If the
+    next global reference is a naked global reference, Caché issues a <NAKED>
+    error.
+  • Set to a valid global reference (defined or undefined). This causes
+    subsequent naked references to use the value you set as if it were the last
+    actual global reference.
+
+$ZREFERENCE cannot be otherwise modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+Examples
+The following example returns the last global reference:
+
+   SET ^a(1,1)="Hello"  ; Full global reference
+   SET ^(2)=" world!"   ; Naked global reference
+   WRITE $ZREFERENCE
+returns:
+
+^a(1,2)
+
+The following example returns global references from several different
+commands. Note that WRITE and ZWRITE set different representations of the same
+global reference.
+
+   SET (^barney,^betty,^wilma,^fred)="flintstone"
+   WRITE !,$ZREFERENCE
+   KILL ^flies
+   WRITE !,$ZREFERENCE
+   WRITE !,^fred
+   WRITE !,$ZREFERENCE,!
+   ZWRITE ^fred
+   WRITE !,$ZREFERENCE
+returns:
+
+^fred          ; last of several globals set in left-to-right order
+^flies         ; KILL sets global indicator, though no global to kill
+flintstone                ; WRITE global
+^fred                       ; global from WRITE
+^fred="flintstone"   ; ZWRITE global
+^fred("")                 ; global from ZWRITE
+
+The following example stores in $ZREFERENCE the last of several global
+references following a ZWRITE command. $ZREFERENCE contains ^Flintstone(2,2).
+This is the last global reference displayed in the ZWRITE sort order, not the
+last global referenced before ZWRITE.
+
+   SET ^Flintstone(2,1)="Barney"
+   SET ^Flintstone(2,2)="Betty"
+   SET ^Flintstone(1,1)="Fred"
+   SET ^Flintstone(1,2)="Wilma"
+   ZWRITE ^Flintstone
+   WRITE !,$ZREFERENCE
+The following example returns an extended global reference. Note that the
+namespace name is always returned in uppercase letters:
+
+   SET ^["samples"]a(1,1)="Hello"
+   SET ^(2)=" world!"
+   WRITE $ZREFERENCE
+   QUIT
+returns:
+
+^["SAMPLES"]a(1,2)
+
+The following example returns the last global reference. In this case, it is ^a
+(1), used as an argument to the $LENGTH function:
+
+   SET ^a(1)="abcdefghijklmnopqrstuvwxyz"
+   SET ^b(1)="1234567890"
+   SET x=$LENGTH(^a(1))
+   WRITE $ZREFERENCE
+   QUIT
+The following example returns the value set for $ZREFERENCE as if it were the
+last global reference. In this case, it is ^a(1,1).
+
+   SET ^a(1,1)="abcdefghijklmnopqrstuvwxyz"
+   SET ^b(1,1)="1234567890"
+   WRITE !,^(1)
+             ; Naked reference uses last global
+   SET $ZREFERENCE="^a(1,1)"
+   WRITE !,$ZREFERENCE
+   WRITE !,^(1)
+             ; Naked reference uses $ZREFERENCE
+             ; value, rather than last global.
+The following example sets an extended global reference. Note the doubled
+quotation marks:
+
+   KILL ^x
+   WRITE !,$ZREFERENCE
+   SET $ZREFERENCE="^[""samples""]a(1,2)"
+   WRITE !,$ZREFERENCE
+See Also
+
+  • ZNSPACE command
+  • $ZUTIL(5) Display or Switch Namespace function
+  • $ZNSPACE special variable
+  • Configuring Namespaces in Caché System Administration Guide
+  • Global Structure in Using Caché Globals
+  • Naked Global Reference in Using Caché Globals
+
+
+ #}}}
+*$ZSTORAGE*  #{{{
+
+Contains the maximum amount of memory for a job.
+Synopsis
+
+$ZSTORAGE
+$ZS
+
+Description
+$ZSTORAGE contains the maximum amount of memory, in Kbytes, for a job’s
+partition space. This memory is available for local and global variables,
+stacks, and other tables. This memory limit does not include space for the
+routine object code.
+You can also use $ZSTORAGE to set this memory size. For example, the following
+statement sets the maximum memory to 24K bytes:
+
+   SET $ZSTORAGE=24
+
+The default maximum value for $ZSTORAGE is 16384 (which is also the $ZSTORAGE
+default). The minimum value for $ZSTORAGE is 4. Larger numbers default to
+16384. Smaller numbers default to 4. Caché truncates any fractional portion (if
+present), and then rounds the integer value up to the next even integer. Thus,
+input values of 127 and 128.9 would both result in 128.
+You can change the $ZSTORAGE default by changing the bbsiz system configuration
+setting. In the System Management Portal, go to [Home] > [Configuration] >
+[Advanced Memory Settings]. You can increase bbsiz as desired, up to a maximum
+of 49536 Kbytes.
+As a rule, you use $ZSTORAGE only as an application development aid to
+determine if a program can be moved to another platform where less memory may
+be available.
+See Also
+$STORAGE special variable
+
+ #}}}
+*$ZTIMESTAMP*  #{{{
+
+Contains the current date and time in Coordinated Universal Time format.
+Synopsis
+
+$ZTIMESTAMP
+$ZTS
+
+Description
+$ZTIMESTAMP contains the current date and time as a Coordinated Universal Time
+value. This is a worldwide time and date standard; this value is very likely to
+differ from your local time (and date) value.
+$ZTIMESTAMP represents date and time as a string with the format:
+
+ddddd,sssss.fff
+
+Where ddddd is an integer specifying the number of days since December 31,
+1840; sssss is an integer specifying the number of seconds since midnight of
+the current day, and fff is a varying number of digits specifying fractional
+seconds. This format is similar to $HOROLOG, except that $HOROLOG does not
+contain fractional seconds.
+Suppose the current date and time (UTC) is as follows:
+2004-07-23 15:17:27.984
+At that time, $ZTIMESTAMP has the value:
+59739,55047.984
+$ZTIMESTAMP reports the Coordinated Universal Time (UTC), which is independent
+of time zone. (UTC is another name for Greenwich Mean Time (GMT).)
+Consequently, $ZTIMESTAMP provides a time stamp that is uniform across time
+zones. This may differ from both the local time value and the local date value.
+The $ZTIMESTAMP time value is a decimal numeric value that counts the time in
+seconds and fractions thereof. The number of digits in the fractional seconds
+may vary from zero to nine, depending on the precision of your computer’s
+time-of-day clock. On Windows systems the fractional precision is three decimal
+digits; on UNIX systems it is six decimal digits. $ZTIMESTAMP suppresses
+trailing zeroes or a trailing decimal point in this fractional portion.
+This special variable cannot be modified using the SET command. Attempting to
+do so results in a <SYNTAX> error.
+Note:
+$ZTIMESTAMP cannot be used on OpenVMS systems before Release 7.0. Invoking 
+$ZTIMESTAMP on a OpenVMS 6.x system results in an <UNIMPLEMENTED> error.
+You can obtain the same time stamp information as $ZTIMESTAMP by invoking a
+system method, using either of the following syntax forms:
+
+   WRITE !,$SYSTEM.SYS.TimeStamp()
+   WRITE !,##class(%SYSTEM.SYS).TimeStamp()
+Refer to the $SYSTEM special variable and the  Class %SYSTEM.SYS section of the
+Caché Class Reference for further details.
+Coordinated Universal Time Conversions
+You can represent local time information as Coordinated Universal Time (UTC)
+using the $ZDATETIME and $ZDATETIMEH functions with tformat values 7 or 8, as
+shown in the following example:
+
+   WRITE !,$ZDATETIME($ZTIMESTAMP,1,1,2)
+   WRITE !,$ZDATETIME($HOROLOG,1,7,2)
+   WRITE !,$ZDATETIME($HOROLOG,1,8,2)
+   WRITE !,$ZDATETIME($ZUTIL(188),1,7,2)
+   WRITE !,$ZDATETIME($ZUTIL(188),1,8,2)
+   WRITE !,$ZDATETIME($NOW(0),1,1,2)
+The above $ZDATETIME functions all return the current time as Coordinated
+Universal Time (rather than local time). The conversions from local time adjust
+for local time variants and adjust the date accordingly, if necessary. However,
+the $ZTIMESTAMP display value and the tformat 7 or 8 converted display values
+are not identical. The tformat values 7 and 8 insert the letter  T before, and
+the letter  Z after the time value. Also, because $HOROLOG time does not
+contain fractional seconds, the precision of 2 in the above example pads those
+decimal digits with zeros.
+Note:
+Exercise caution when comparing local time and UTC time:
+
+  • The preferred way to convert UTC time to local time is to use the 
+    $ZUTIL(193) function, supplying your local time zone offset in minutes.
+    This function adjusts for local time variants.
+  • You cannot interconvert local time and UTC time by simply adding or
+    subtracting the value of $ZTIMEZONE * 60. This is because, in many cases,
+    local time is adjusted for local time variants (such as Daylight Savings
+    Time, which seasonally adjusts local time by one hour). These local time
+    variants are not reflected in $ZTIMEZONE.
+  • Both the timezone offset from UTC and local time variants (such as the
+    seasonal shift to Daylight Savings Time) can affect the date as well as the
+    time. Converting from local time to UTC time (or vice versa) may change the
+    date as well as the time.
+
+Date and Time Functions Compared
+The various ways to return the current date and time are compared, as follows:
+
+  • $ZTIMESTAMP contains the UTC (Greenwich Mean) date and time, with
+    fractional seconds, in Caché storage format. Fractional seconds are
+    expressed in three digits of precision (on Windows systems), or six digits
+    of precision (on UNIX systems).
+  • $HOROLOG contains the local, variant-adjusted date and time in Caché
+    storage format. The local time zone is determined from the current value of
+    the $ZTIMEZONE special variable, and then adjusted for local time variants,
+    such as Daylight Savings Time. It returns whole seconds only; fractions of
+    a second are truncated.
+  • $NOW returns the local date and time for the current process. $NOW returns
+    the date and time in Caché storage format. It includes fractional seconds;
+    the number of fractional digits is the maximum precision supported by the
+    current operating system.
+      □ $NOW() determines the local time zone from the value of the $ZTIMEZONE
+        special variable. The local time is not adjusted for local time
+        variants, such as Daylight Savings Time. It therefore may not
+        correspond to local clock time.
+      □ $NOW(tzmins) returns the time and date that correspond to the specified
+        tzmins time zone parameter. The value of $ZTIMEZONE is ignored.
+  • $ZUTIL(188) returns the local, variant-adjusted date and time. The date,
+    time, and local time zone are determined from the host operating system.
+    The value of $ZTIMEZONE is ignored. $ZUTIL(188) returns the date and time
+    in Caché storage format. It includes fractional seconds; the number of
+    fractional digits is the maximum precision supported by the current
+    operating system.
+
+Example
+The following example converts the value of $ZTIMESTAMP to local time, and
+compares it with two representations of local time: $ZUTIL(188) and $HOROLOG:
+
+   SET stamp=$ZTIMESTAMP,clock=$HOROLOG,miliclock=$ZUTIL(188)
+   WRITE !,"local date and time: ",$ZDATETIME(clock,1,1,2)
+   WRITE !,"local date and time: ",$ZDATETIME(miliclock,1,1,2)
+   WRITE !,"UTC date and time:   ",$ZDATETIME(stamp,1,1,2)
+   IF $PIECE(stamp,",",2) = $PIECE(clock,",",2) {
+      WRITE !,"Local time is UTC time" }
+   ELSEIF $PIECE(stamp,",") '= $PIECE(clock,",") {
+     WRITE !,"Time difference affects date" }
+   ELSE {
+         SET localutc=$ZUTIL(193,stamp)
+         WRITE !,"Converted local date and time: ",$ZDATETIME(localutc,1,1,2)
+   }
+   QUIT
+The following example compares the values returned by $ZTIMESTAMP and $HOROLOG,
+and shows how the time portion of $ZTIMESTAMP may be converted. (Note that in
+this simple example only one adjustment is made for local time variations, such
+as Daylight Savings Time. Other types of local variation may cause clocksecs
+and stampsecs to contain irreconcilable values.)
+
+   SET stamp=$ZTIMESTAMP,clock=$HOROLOG
+   WRITE !,"local date and time: ",$ZDATETIME(clock,1,1,2)
+   WRITE !,"UTC date and time:   ",$ZDATETIME(stamp,1,1,2)
+   IF $PIECE(stamp,",") '= $PIECE(clock,",") {
+     WRITE !,"Time difference affects date" }
+   SET clocksecs=$EXTRACT(clock,7,11)
+   SET stampsecs=$EXTRACT(stamp,7,11)-($ZTIMEZONE*60)
+   IF clocksecs=stampsecs {
+      WRITE !,"No local time variant"
+      WRITE !,"Local time is timezone time" }
+   ELSE {
+         SET stampsecs=stampsecs+3600
+         IF clocksecs=stampsecs {
+           WRITE !,"Daylight Savings Time variant:"
+           WRITE !,"Local time offset 1 hour from timezone time" }
+         ELSE { WRITE !,"Cannot reconcile due to local time variant" }
+   }
+   QUIT
+See Also
+
+  • $NOW function
+  • $ZDATETIME function
+  • $ZUTIL(188) Local Date/Time with Fractional Seconds function
+  • $ZUTIL(193) Convert UTC to Local Date/Time function
+  • $HOROLOG special variable
+  • $ZTIMEZONE special variable
+
+
+ #}}}
+*$ZTIMEZONE*  #{{{
+
+Contains the time zone offset from GMT.
+Synopsis
+
+$ZTIMEZONE
+$ZTZ
+
+Description
+$ZTIMEZONE contains the time zone offset from GMT (Greenwich Mean Time) in
+minutes. This offset is expressed as a signed integer in the range -1440 to
+1440. Time zones west of GMT are specified as positive numbers; time zones east
+of GMT are specified as negative numbers. (Time zones must be expressed in
+minutes, because not all time zone differences are in whole hours.) By default,
+$ZTIMEZONE is initialized to the time zone set for the computer’s operating
+system.
+Caution:
+$ZTIMEZONE does not adjust for Daylight Savings Time or other local time
+variants. Local time variants seasonally adjust local time, usually by adding
+or subtracting an hour on a specified date. Because $ZTIMEZONE does not apply
+these time adjustments, its value is the same throughout the year. For
+functions and programs that use $ZTIMEZONE, elapsed local time is always
+continuous, but the time value may need to be seasonally adjusted to correspond
+to local clock time.
+Setting the Time Zone
+You can use $ZTIMEZONE to set the time zone used by the current Caché process.
+Setting $ZTIMEZONE does not change the default Caché time zone or your
+computer’s time zone setting.
+Use the SET command to set $ZTIMEZONE to a specified signed integer number of
+minutes. Leading zeros and decimal portions of numbers are ignored. If you
+specify a nonnumeric value or no value when setting $ZTIMEZONE, Caché sets 
+$ZTIMEZONE to 0 (Greenwich Mean Time).
+For example, North American Eastern Standard Time (EST) is five hours west of
+Greenwich Mean Time (GMT). Therefore, to set the current Caché process to EST
+you would specify 300 minutes. To specify a time zone one hour east of GMT, you
+would specify  60 minutes. To specify GMT itself, you would specify 0 minutes.
+Setting $ZTIMEZONE:
+
+  • affect the $NOW() local time value. It changes the time portion of $NOW(),
+    and this change of time can also change the date portion of $NOW() for the
+    current process. $NOW() reflects the $ZTIMEZONE setting exactly, its value
+    is not adjusted for local time variants.
+  • affects the $HOROLOG local time value. $HOROLOG takes its time zone value
+    from $ZTIMEZONE, then seasonally adjusts for local time variants such as
+    Daylight Savings Time. $HOROLOG therefore always conforms to local clock
+    time, but $HOROLOG elapsed time is not continuous throughout the year.
+  • affects the $ZUTIL(193). It changes the time portion of $ZUTIL(193), and
+    this change of time can also change the date portion of $ZUTIL(193) for the
+    current process.
+  • does not affect the $ZUTIL(188) local time value. $ZUTIL(188) takes its
+    time zone value from the operating system.
+  • does not affect $ZTIMESTAMP or $ZHOROLOG values.
+  • does not affect the date format conversions performed by the $ZDATE and 
+    $ZDATEH functions. The $ZUTIL(71) function, which sets the date in $HOROLOG
+    to a fixed value, is also not affected by $ZTIMEZONE.
+
+Other Time Zone Methods
+You can obtain the same time zone information by invoking a system method, as
+follows:
+
+   WRITE $SYSTEM.SYS.TimeZone()
+Refer to the  Class %SYSTEM.SYS section of the Caché Class Reference for
+further details.
+You can return your local time variation as part of a date and time string by
+using the $ZDATETIME and $ZDATETIMEH functions with tformat values 5 or 6, as
+shown in the following example:
+
+   WRITE !,$ZDATETIME($HOROLOG,1,5)
+This returns a value such as:
+07/23/2004T16:23:54-04:00
+The last part of this string (-04:00) indicates the local time variation in
+hours and minutes from Greenwich Mean Time. Note that this variation is not
+necessarily the time zone time. In the above case, the time zone is 5 hours
+west of Greenwich (-5:00), but the local time variant (Daylight Savings Time)
+offsets the time zone time by one hour.
+$ZUTIL(193) Uses Time Zone Setting
+You can use $ZUTIL(193) to convert a Coordinated Universal Time (UTC) date and
+time value to a local time, or vice versa. This function takes as input a UTC
+value ($ZTIMESTAMP) or a local ($HOROLOG) value. $ZUTIL(193) uses the local
+time zone setting to return the corresponding date and time with local time
+variants (such as Daylight Savings Time) applied where applicable.
+
+   SET clock=$HOROLOG
+   SET stamp=$ZUTIL(193,$ZTIMESTAMP,0)
+   WRITE !,"local/local date and time: ",$ZDATETIME(clock,1,1,2)
+   WRITE !,"UTC/local date and time:   ",$ZDATETIME(stamp,1,1,2)
+Examples
+The following example returns your current time zone:
+
+   SET zone=$ZTIMEZONE
+   IF zone=0 {
+     WRITE !,"Your time zone is Greenwich Mean Time" }
+   ELSEIF zone>0 {
+     WRITE !,"Your time zone is ",zone/60," hours west of Greenwich" }
+   ELSE {
+     WRITE !,"Your time zone is ",(-zone)/60," hours east of Greenwich" }
+The following example shows that setting the time zone can change the date as
+well as the time:
+
+   SET zonesave=$ZTIMEZONE
+   WRITE !,"Date in my current time zone:  ",$ZDATE($HOROLOG)
+   IF $ZTIMEZONE=0 {
+     SET $ZTIMEZONE=720 }
+   ELSEIF $ZTIMEZONE>0 {
+     SET $ZTIMEZONE=($ZTIMEZONE-720) }
+   ELSE {
+     SET $ZTIMEZONE=($ZTIMEZONE+720) }
+   WRITE !,"Date halfway around the world: ",$ZDATE($HOROLOG)
+   WRITE !,"Date at Greenwich Observatory: ",$ZDATE($ZTIMESTAMP)
+   SET $ZTIMEZONE=zonesave
+The following example determines if your local time is the same as your time
+zone time:
+
+   SET localnow=$HOROLOG, stamp=$ZTIMESTAMP
+   WRITE !,"local date and time: ",$ZDATETIME(localnow,1,1)
+   SET clocksecs=$PIECE(localnow,",",2)
+   SET stampsecs=$EXTRACT(stamp,7,11)-($ZTIMEZONE*60)
+   IF clocksecs=stampsecs {
+      WRITE !,"No local time variant:"
+      WRITE !,"Local time is timezone time" }
+   ELSE {
+         IF clocksecs=stampsecs+3600 {
+           WRITE !,"Daylight Savings Time variant:"
+           WRITE !,"Local time offset 1 hour from timezone time" }
+         ELSE { WRITE !,"Local time and time zone time are "
+                WRITE !,(clocksecs-stampsecs)/60," minutes different" }
+   }
+   QUIT
+See Also
+
+  • $ZUTIL(188) Local Time with Fractional Seconds function
+  • $ZUTIL(193) Interconvert Universal (UTC) Time and Local Time function
+  • $HOROLOG special variable
+  • $ZTIMESTAMP special variable
+
+
+ #}}}
+*$ZTRAP*  #{{{
+
+Contains the name of the current error trap handler.
+Synopsis
+
+$ZTRAP
+$ZT
+
+Description
+$ZTRAP contains the tag name and/or routine name of the current error trap
+handler. There are three ways to set $ZTRAP:
+
+  • SET $ZTRAP= location 
+  • SET $ZTRAP= *location 
+  • SET $ZTRAP= ^%ET or  ^%ETN 
+
+Here location can be specified as tag (a label in the current routine), 
+^routine (the beginning of a specified external routine), or tag^routine (a
+specified label in a specified external routine). A tag used by $ZTRAP should
+not exceed 31 characters in length.
+Note:
+$ZTRAP provides legacy support for tag+offset in some contexts (but not in
+procedures). This optional +offset is an integer specifying the number of lines
+to offset from tag. The use of +offset is deprecated, and may result in a
+compilation warning error. InterSystems recommends that you avoid the use of a
+line offset when specifying location.
+The $ZTRAP location must be in the current namespace. $ZTRAP does not support
+extended global references.
+If you specify a nonexistent location in the current routine, Caché issues a
+<NOLINE> error message.
+By default, error trapping is not enabled, and $ZTRAP contains the null string
+(""). To enable error trapping, set $ZTRAP to the error trap handler by
+specifying its location. For example:
+
+   IF $ZTRAP="" {WRITE !,"$ZTRAP not set" }
+   ELSE {WRITE !,"$ZTRAP already set: ",$ZTRAP
+         SET oldtrap=$ZTRAP }
+   SET $ZTRAP="Etrap1^Handler"
+   WRITE !,"$ZTRAP set to: ",$ZTRAP
+   //  program code
+   SET $ZTRAP=oldtrap
+   WRITE !,"$ZTRAP restored to: ",$ZTRAP
+When an error occurs, this format unwinds the call stack and transfers control
+to the specified error trap handler.
+In SqlComputeCode, do not set $ZTRAP=$ZTRAP. This can result in significant
+problems with transactional processing and error reporting.
+You can choose to leave the call stack as it is after the error has occurred.
+To do so, place an asterisk (*) before location. This form is not valid for use
+within procedures. It can only be used in subroutines that are not procedures,
+as in this example:
+
+Main
+   SET $ZTRAP="*OnError"
+   WRITE !,"$ZTRAP set to: ",$ZTRAP
+  // program code
+OnError
+   // Error handling code
+   QUIT
+This format simply causes a GOTO to the tag specified in $ZTRAP; $STACK and 
+$ESTACK are unchanged. The context frame of the $ZTRAP error handling routine
+is the same as the context frame where the error occurred. Upon completion of
+the $ZTRAP error handling routine, Caché unwinds the stack to the previous
+context level. This form of $ZTRAP is especially useful for analyzing
+unexpected errors.
+Note that the asterisk sets a $ZTRAP option; it is not part of the location.
+For this reason, this asterisk does not display when performing a WRITE or 
+ZZDUMP on $ZTRAP.
+The error handlers ^%ETN and ^%ET always behave as if they were preceded by an
+asterisk (*).
+To disable error trapping, set $ZTRAP to the null string (""). This clears any
+error trap set at the current DO stack level.
+A $ZTRAP error trap catches system errors, including a system error thrown by
+the THROW command. If a TRY block throws a system error and the next error trap
+is a $ZTRAP, the THROW transfers execution to $ZTRAP rather than to the CATCH
+block. For this reason, care should be used when specifying a $ZTRAP within a 
+TRY block.
+When you set an error handler using $ZTRAP, this handler takes precedence over
+any existing $ETRAP error handler. Caché implicitly performs a NEW $ETRAP
+command and sets $ETRAP to the null string ("").
+Note:
+Use of $ZTRAP from the Caché Terminal prompt is limited to the current line of
+code. The SET $ZTRAP command and the command generating the error must be in
+the same line of code. Caché Terminal restores $ZTRAP to the system default at
+the beginning of each command line.
+Examples
+The following example sets $ZTRAP to the OnError routine in this program. It
+then calls SubA in which an error occurs (attempting to divide a number by 0).
+When the error occurs, Caché calls the OnError routine specified in $ZTRAP.
+OnError is invoked at the context level at which $ZTRAP was set. Because
+OnError is at the same context level as Main, execution does not return to
+Main.
+
+Main
+   NEW $ESTACK
+   SET $ZTRAP="OnError"
+   WRITE !,"$ZTRAP set to: ",$ZTRAP
+   WRITE !,"Main $ESTACK= ",$ESTACK   // 0
+   WRITE !,"Main $ECODE= ",$ECODE
+   DO SubA
+   WRITE !,"Returned from SubA"   // not executed
+   WRITE !,"MainReturn $ECODE= ",$ECODE
+   QUIT
+SubA
+   WRITE !,"SubA $ESTACK= ",$ESTACK   // 1
+   WRITE !,6/0    // Error: division by zero
+   WRITE !,"fine with me"
+   QUIT
+OnError
+   WRITE !,"OnError $ESTACK= ",$ESTACK   // 0
+   WRITE !,"$ECODE= ",$ECODE
+   QUIT
+The following example is identical to the previous example, with one exception:
+The $ZTRAP location is prefaced by an asterisk (*). When the error occurs in
+SubA, this asterisk causes Caché to call the OnError routine at the context
+level of SubA (where the error occurred), not at the context level of Main
+(where $ZTRAP was set). Therefore, when OnError completes, execution returns to
+Main at the line following the DO command.
+
+Main
+   NEW $ESTACK
+   SET $ZTRAP="*OnError"
+   WRITE !,"$ZTRAP set to: ",$ZTRAP
+   WRITE !,"Main $ESTACK= ",$ESTACK   // 0
+   WRITE !,"Main $ECODE= ",$ECODE
+   DO SubA
+   WRITE !,"Returned from SubA"   // executed
+   WRITE !,"MainReturn $ECODE= ",$ECODE
+   QUIT
+SubA
+   WRITE !,"SubA $ESTACK= ",$ESTACK   // 1
+   WRITE !,6/0    // Error: division by zero
+   WRITE !,"fine with me"
+   QUIT
+OnError
+   WRITE !,"OnError $ESTACK= ",$ESTACK   // 1
+   WRITE !,"$ECODE= ",$ECODE
+   QUIT
+See Also
+
+  • THROW command
+  • ZQUIT command
+  • ZINSERT command
+  • $ETRAP special variable
+  • $ECODE special variable
+  • $ESTACK special variable
+  • $STACK special variable
+  • Error Handling in Using Caché ObjectScript
+
+
+ #}}}
+*$ZVERSION*  #{{{
+
+Contains a string describing the current version of Caché.
+Synopsis
+
+$ZVERSION
+$ZV
+
+Description
+$ZVERSION contains a string showing the version of the currently running Caché
+system.
+The following example returns the $ZVERSION string:
+
+   WRITE $ZVERSION
+This returns a version string such as the following:
+
+Cache for Windows (x86-32) 2007.2 (Build 306U) Sun Aug 5 2007 17:21:11 EDT
+
+This string includes the type of Caché installation (product and platform,
+including CPU type), the version number (2007.2), the build number within that
+version (the  U in the build number indicates a Unicode version), and the date
+and time that this version of Caché was created.  EST is Eastern Standard Time
+(the time zone for the Eastern United States),  EDT is Eastern Daylight Savings
+Time.
+The same information can be viewed by going to the Caché Cube and selecting  
+About... or by invoking a system method, as follows:
+
+   WRITE $SYSTEM.Version.GetVersion()
+You can get the component parts of this version string by invoking other 
+$SYSTEM.Version methods, which you can list by invoking:
+
+   DO $SYSTEM.Version.Help()
+The $ZVERSION special variable cannot be modified using the SET command.
+Attempting to do so results in a <SYNTAX> error.
+To return the operating system type for your Windows operating system, use 
+$ZUTIL(100).
+Example
+The following example extracts the create date from the version string to
+calculate how old the current version of Caché is, in days. Note that this
+example is specific to Windows platforms:
+
+   SET createdate=$PIECE($ZVERSION," ",9,11)
+   WRITE !,"Creation date: ",createdate
+   WRITE !,"Current date:  ",$ZDATE($HOROLOG,6)
+   SET nowcount=$PIECE($HOROLOG,",")
+   SET thencount=$ZDATEH(createdate,6)
+   WRITE !,"This version is ",(nowcount-thencount)," days old"
+See Also
+
+  • $SYSTEM special variable
+  • $ZUTIL(100) Operating System Type function
+  • $ZUTIL(67,14) Client Operating System legacy function
+
+
+ #}}}
+
+
+
+
+==============================================================================
+  vim:tw=78:fo=tcq2:ts=8:ft=help:norl:fdm=marker:fmr={{{,}}}:cms=\ #%s  
+
